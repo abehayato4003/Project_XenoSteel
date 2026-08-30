@@ -2,15 +2,23 @@ using UnityEngine;
 
 namespace XenoSteel.Core
 {
-    /// <summary>
-    /// Sprint 1で使用する仮の機動力。
-    /// Sprint 2以降、機体データの機動力に置き換える。
-    /// </summary>
     public class XenoSteelInitiative : MonoBehaviour
     {
         [SerializeField]
-        private int _mobility = 50;
+        private XenoUnitData _unitData;
 
-        public int Mobility => _mobility;
+        private XenoSteelUnitStats _stats;
+
+        public int Mobility => _stats != null ? _stats.Mobility : 0;
+
+        public XenoUnitData UnitData => _unitData;
+
+        private void Awake()
+        {
+            if (_unitData != null)
+            {
+                _stats = new XenoSteelUnitStats(_unitData);
+            }
+        }
     }
 }

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e88664c2414b4644bde7ed6d89de6f4, type: 3}
+  m_Name: PlayerTest_Data
+  m_EditorClassIdentifier: 
+  unitName: "\u30A2\u30B9\u30BF\u30FC"
+  hp: 800
+  en: 1600
+  armor: 300
+  mobility: 50
+  movement: 0
+  terrainAdaptation: 0
+  size: 0
+  pilot: {fileID: 11400000, guid: 3d875b9f0818bd54594433d84c0d53d5, type: 2}

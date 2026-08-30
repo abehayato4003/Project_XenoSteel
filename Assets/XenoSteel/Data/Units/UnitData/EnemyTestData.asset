@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e88664c2414b4644bde7ed6d89de6f4, type: 3}
+  m_Name: EnemyTestData
+  m_EditorClassIdentifier: 
+  unitName: "\u30D4\u30FC\u30A8\u30A4\u30B9"
+  hp: 0
+  en: 0
+  armor: 0
+  mobility: 50
+  movement: 0
+  terrainAdaptation: 0
+  size: 0
+  pilot: {fileID: 11400000, guid: 539a723f675624f4696e3d4ed3cc0a20, type: 2}

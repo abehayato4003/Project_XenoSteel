@@ -1,4 +1,5 @@
 using UnityEngine;
+using XenoSteel.Units;
 
 public enum TerrainAdaptation
 {
@@ -25,4 +26,7 @@ public class XenoUnitData : ScriptableObject
 
     [Header("サイズ")]
     public int size;
+
+    [Header("パイロット")]
+    public PilotData pilot;
 }

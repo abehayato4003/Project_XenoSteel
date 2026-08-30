@@ -85,6 +85,8 @@
 
 - **Data/**
   - **Units/**
+    - **PilotData/**
+    - **UnitData/**
   - **Story/**
   - **Stages/**
 
