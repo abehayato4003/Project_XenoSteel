@@ -18,7 +18,7 @@ MonoBehaviour:
   armor: 300
   mobility: 50
   movement: 5
-  attack: 100
+  attack: 50
   terrainAdaptation: 0
   size: 0
   pilot: {fileID: 11400000, guid: 3d875b9f0818bd54594433d84c0d53d5, type: 2}

@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: EnemyTestData
   m_EditorClassIdentifier: 
   unitName: P-As
-  hp: 800
+  hp: 1500
   en: 1600
-  armor: 300
+  armor: 30
   mobility: 50
   movement: 10
   attack: 30

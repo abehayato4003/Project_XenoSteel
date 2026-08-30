@@ -9,6 +9,8 @@ using TurnBasedStrategyFramework.Common.Cells;
 using TurnBasedStrategyFramework.Common.Units;
 using TurnBasedStrategyFramework.Common.Units.Abilities;
 
+using XenoSteel.Units;
+
 using UnityEngine;
 
 namespace XenoSteel.Combat
@@ -17,6 +19,8 @@ namespace XenoSteel.Combat
     {
         private SkillData _currentSkill;
         private HashSet<IUnit> _attackableUnits;
+
+        [SerializeField] private XenoSteelSkillSelectionUI _skillSelectionUI;
 
         public override void Initialize(IGridController gridController)
         {
@@ -48,6 +52,11 @@ namespace XenoSteel.Combat
 
         public SkillData CurrentSkill => _currentSkill;
 
+        public void SetCurrentSkill(SkillData skill)
+        {
+            _currentSkill = skill;
+        }
+
         public override void OnAbilitySelected(IGridController gridController)
         {
             if (_currentSkill == null)
@@ -62,6 +71,11 @@ namespace XenoSteel.Combat
                 enemyUnits.Where(unit =>
                     unit.CurrentCell.GetDistance(UnitReference.CurrentCell)
                     <= _currentSkill.range));
+
+            if (_skillSelectionUI != null)
+            {
+                _skillSelectionUI.Show(this);
+            }
         }
 
         public override async void Display(IGridController gridController)
