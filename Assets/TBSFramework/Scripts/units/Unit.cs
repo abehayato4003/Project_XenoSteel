@@ -115,6 +115,8 @@ namespace TurnBasedStrategyFramework.Unity.Units
 
         public virtual void Initialize(IGridController gridController)
         {
+            Debug.Log("Unit.Initialize");
+
             _moveComponent = new UnityMoveComponent(this);
             _combatComponent = new CombatComponent(this);
             _behaviourTreeResource?.Initialize(this, gridController);

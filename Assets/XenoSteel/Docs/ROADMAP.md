@@ -268,6 +268,44 @@ EN
 
 移動力・環境適応・サイズはパイロット補正の対象外とし、機体側で管理する。
 
+### Sprint 2.5追加：移動力のTBSF接続
+
+Sprint 2.5までに作成した機体ステータスのうち、**移動力をTBSF標準の移動システムへ接続**した。
+
+TBSFの `Unit` が持つ `MovementPoints` を利用し、`XenoUnitData` に設定した移動力によって実際の移動可能範囲が変化するようにした。
+
+TBSFでは `MovementPoints` が移動可能距離を決定するため、既存の `MoveAbility` や `Unit.cs` の移動処理は変更せず、そのまま利用する。
+
+#### 実装項目
+
+* [x] `XenoUnitData` の移動力をゲーム中の移動処理へ接続
+* [x] TBSF `Unit.MovementPoints` への移動力設定
+* [x] `MaxMovementPoints` への初期値反映を確認
+* [x] 機体ごとに異なる移動力を設定できることを確認
+* [x] 移動力の変更によって実際の移動可能範囲が変化することを確認
+
+#### Sprint 2.5追加で作成したクラス・データ
+
+* `XenoSteelMovement.cs`
+
+  * XenoSteelの機体データから移動力を取得
+  * `XenoSteelUnitStats` の `Movement` を使用
+  * TBSFの `Unit.MovementPoints` に移動力を設定
+  * TBSF標準の `MoveAbility` をそのまま利用できるようにする
+  * `XenoSteelInitiative.cs` とは分離し、移動に関する処理を担当する
+
+* `XenoSteelUnitStats.cs`
+
+  * `XenoUnitData.movement` を `Movement` として提供
+  * 移動力についてはパイロット補正を行わず、機体側の値をそのまま使用する
+
+* `Unit.cs`（TBSF標準）
+
+  * `MovementPoints` を実際の移動可能範囲の基準として使用
+  * `MaxMovementPoints` によってターン終了時の移動力回復を管理
+  * TBSF標準コード自体は変更せず、XenoSteel側から値を設定する形で利用
+
+
 
 ---
 

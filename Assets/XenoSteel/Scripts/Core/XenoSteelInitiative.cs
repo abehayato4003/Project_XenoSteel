@@ -15,6 +15,8 @@ namespace XenoSteel.Core
 
         private void Awake()
         {
+            Debug.Log("XenoSteelInitiative.Awake");
+
             if (_unitData != null)
             {
                 _stats = new XenoSteelUnitStats(_unitData);
