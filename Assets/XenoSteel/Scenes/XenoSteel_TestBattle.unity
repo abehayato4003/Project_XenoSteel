@@ -6148,6 +6148,10 @@ PrefabInstance:
       propertyPath: _currentCell
       value: 
       objectReference: {fileID: 2084759942}
+    - target: {fileID: 232018564455111798, guid: b764de7a9295c884d98d901ae741df01, type: 3}
+      propertyPath: _movementPoints
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 889404546449052493, guid: b764de7a9295c884d98d901ae741df01, type: 3}
       propertyPath: m_Name
       value: Player1 Unit

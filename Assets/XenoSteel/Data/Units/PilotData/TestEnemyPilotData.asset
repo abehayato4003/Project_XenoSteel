@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5dbf4c69a79a18342b5a5f4dcb23ba4e, type: 3}
   m_Name: TestEnemyPilotData
   m_EditorClassIdentifier: 
-  pilotName: "\u30B1\u30A4\u30EB"
-  hpMultiplier: 1
-  enMultiplier: 1
+  pilotName: Keil
+  hpMultiplier: 1.1
+  enMultiplier: 1.3
   armorMultiplier: 1
-  mobilityMultiplier: 1
+  mobilityMultiplier: 1.5

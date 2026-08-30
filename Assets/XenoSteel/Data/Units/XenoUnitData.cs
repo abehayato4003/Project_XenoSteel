@@ -1,5 +1,6 @@
 using UnityEngine;
 using XenoSteel.Units;
+using XenoSteel.Combat;
 
 public enum TerrainAdaptation
 {
@@ -29,4 +30,7 @@ public class XenoUnitData : ScriptableObject
 
     [Header("パイロット")]
     public PilotData pilot;
+
+    [Header("スキル")]
+    public SkillData[] skills;
 }

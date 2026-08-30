@@ -9,11 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5dbf4c69a79a18342b5a5f4dcb23ba4e, type: 3}
-  m_Name: TestPilotData
+  m_Script: {fileID: 11500000, guid: 54a4924995947ce4a9ce5f9ecc0815af, type: 3}
+  m_Name: Skill_TestMelee
   m_EditorClassIdentifier: 
-  pilotName: Arkram
-  hpMultiplier: 1.1
-  enMultiplier: 1.6
-  armorMultiplier: 1
-  mobilityMultiplier: 1.2
+  skillName: TestMelee
+  range: 2
+  power: 100
+  energyCost: 0
+  area: 0
+  attribute: Phisical
+  requiresTarget: 1
