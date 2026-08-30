@@ -9,6 +9,8 @@ namespace XenoSteel.Core
 
         private XenoSteelUnitStats _stats;
 
+        public XenoSteelUnitStats Stats => _stats;
+
         public int Mobility => _stats != null ? _stats.Mobility : 0;
 
         public XenoUnitData UnitData => _unitData;

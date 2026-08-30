@@ -61,11 +61,10 @@ namespace XenoSteel.Units
                 return;
             }
 
-            Show(initiative.UnitData);
+            Show(initiative.UnitData, unit);
         }
 
-        public void Show(XenoUnitData data)
-        {
+        private void Show(XenoUnitData data, Unit unit){
             if (data == null)
             {
                 Hide();
@@ -79,8 +78,9 @@ namespace XenoSteel.Units
             _statusText.text =
             $"<b>機体：{data.unitName}</b>\n" +
             $"パイロット：{(data.pilot != null ? data.pilot.pilotName : "なし")}\n" +
-            $"HP: {stats.HP}\n" +
+            $"HP: {unit.Health} / {stats.HP}\n" +
             $"EN: {stats.EN}\n" +
+            $"Attack: {stats.Attack}\n" +
             $"Armor: {stats.Armor}\n" +
             $"Mobility: {stats.Mobility}\n" +
             $"Movement: {stats.Movement}\n" +

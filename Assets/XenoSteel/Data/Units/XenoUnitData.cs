@@ -21,6 +21,7 @@ public class XenoUnitData : ScriptableObject
     public int armor;
     public int mobility;
     public int movement;
+    public int attack;
 
     [Header("環境適応")]
     public TerrainAdaptation terrainAdaptation;

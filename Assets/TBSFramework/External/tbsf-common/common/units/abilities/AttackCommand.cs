@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using TurnBasedStrategyFramework.Common.Controllers;
 
+using UnityEngine;
+
 namespace TurnBasedStrategyFramework.Common.Units.Abilities
 {
     /// <summary>
@@ -47,8 +49,16 @@ namespace TurnBasedStrategyFramework.Common.Units.Abilities
         /// <returns>A task representing the asynchronous execution of the attack.</returns>
         public async Task Execute(IUnit unit, IGridController controller)
         {
+            Debug.Log($"AttackCommand Execute: Damage={_damage}");
+
             _target.ModifyHealth(-_damage, unit);
+
+            Debug.Log($"Enemy Health after attack: {_target.Health}");
+            
             _target.InvokeAttacked(new UnitAttackedEventArgs(_target, unit, _damage));
+            
+            Debug.Log($"ActionPoints after attack: {unit.ActionPoints}");
+
             unit.ActionPoints -= _actionCost;
 
             await Task.WhenAll(

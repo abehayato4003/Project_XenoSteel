@@ -8,6 +8,7 @@ public class XenoSteelUnitStats
     public int Armor { get; }
     public int Mobility { get; }
     public int Movement { get; }
+    public int Attack { get; }
     public TerrainAdaptation TerrainAdaptation { get; }
     public int Size { get; }
 
@@ -18,6 +19,7 @@ public class XenoSteelUnitStats
         Armor = unitData.armor;
         Mobility = unitData.mobility;
         Movement = unitData.movement;
+        Attack = unitData.attack;
         TerrainAdaptation = unitData.terrainAdaptation;
         Size = unitData.size;
 
