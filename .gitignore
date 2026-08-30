@@ -1,28 +1,30 @@
-# Unity generated folders
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
 [Bb]uild/
 [Bb]uilds/
 [Ll]ogs/
-UserSettings/
-MemoryCaptures/
-Recordings/
+[Uu]ser[Ss]ettings/
 
-# IDE
-.vscode/
+# MemoryCaptures
+[Mm]emoryCaptures/
+
+# Asset Store tools
+[Aa]ssets/AssetStoreTools*
+
+# Visual Studio / Rider
+.vs/
 .idea/
+.gradle/
 
-# Visual Studio / VS Code
+# Generated files
 *.csproj
 *.unityproj
 *.sln
+*.suo
 *.user
 *.userprefs
-*.pidb
-*.booproj
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
-Desktop.ini
