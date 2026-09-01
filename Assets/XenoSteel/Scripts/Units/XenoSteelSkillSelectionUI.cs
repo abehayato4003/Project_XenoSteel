@@ -13,6 +13,9 @@ namespace XenoSteel.Units
 
         public void Show(XenoSteel.Combat.XenoSteelAttackAbility attackAbility)
         {
+
+            Debug.Log("SkillSelectionUI.Show");
+
             _attackAbility = attackAbility;
 
             foreach (Transform child in panel.transform)
@@ -63,7 +66,6 @@ namespace XenoSteel.Units
                 button.onClick.AddListener(() =>
                 {
                     _attackAbility.SetCurrentSkill(skill);
-                    Hide();
                 });
             }
         }

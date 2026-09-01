@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Skill_TestMelee
   m_EditorClassIdentifier: 
   skillName: TestMelee
-  range: 2
+  range: 1
   power: 100
-  energyCost: 0
+  energyCost: 50
   area: 0
   attribute: Phisical
   requiresTarget: 1

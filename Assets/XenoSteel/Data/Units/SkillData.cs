@@ -21,6 +21,10 @@ namespace XenoSteel.Combat
         [Header("攻撃範囲")]
         public int area = 0;
 
+        [Header("範囲攻撃ダメージ")]
+        [Range(0f, 1f)]
+        public float areaDamageMultiplier = 0.5f;
+
         [Header("属性")]
         public string attribute;
 

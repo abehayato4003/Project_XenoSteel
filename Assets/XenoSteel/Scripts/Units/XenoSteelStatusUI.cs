@@ -1,7 +1,10 @@
 using UnityEngine;
 using TMPro;
+
 using TurnBasedStrategyFramework.Unity.Units;
 using TurnBasedStrategyFramework.Common.Units;
+
+using XenoSteel.Core;
 
 namespace XenoSteel.Units
 {
@@ -11,18 +14,26 @@ namespace XenoSteel.Units
         [SerializeField] private TMP_Text _statusText;
 
         private Unit[] _units;
-
         private Unit _selectedUnit;
 
         private void Start()
         {
             _panel.SetActive(false);
 
-            _units = FindObjectsByType<Unit>(FindObjectsSortMode.None);
+            _units = FindObjectsByType<Unit>(
+                FindObjectsSortMode.None);
 
             foreach (Unit unit in _units)
             {
                 unit.UnitSelected += OnUnitSelected;
+            }
+        }
+
+        private void Update()
+        {
+            if (_selectedUnit != null)
+            {
+                ShowUnitStatus(_selectedUnit);
             }
         }
 
@@ -46,16 +57,19 @@ namespace XenoSteel.Units
         {
             if (unit is Unit selectedUnit)
             {
+                _selectedUnit = selectedUnit;
                 ShowUnitStatus(selectedUnit);
             }
         }
 
         private void ShowUnitStatus(Unit unit)
         {
-            XenoSteel.Core.XenoSteelInitiative initiative =
-                unit.GetComponent<XenoSteel.Core.XenoSteelInitiative>();
+            XenoSteelInitiative initiative =
+                unit.GetComponent<XenoSteelInitiative>();
 
-            if (initiative == null || initiative.UnitData == null)
+            if (initiative == null ||
+                initiative.UnitData == null ||
+                initiative.Stats == null)
             {
                 Hide();
                 return;
@@ -64,28 +78,39 @@ namespace XenoSteel.Units
             Show(initiative.UnitData, unit);
         }
 
-        private void Show(XenoUnitData data, Unit unit){
+        private void Show(XenoUnitData data, Unit unit)
+        {
             if (data == null)
             {
                 Hide();
                 return;
             }
 
-            XenoSteelUnitStats stats = new XenoSteelUnitStats(data);
+            XenoSteelInitiative initiative =
+                unit.GetComponent<XenoSteelInitiative>();
+
+            if (initiative == null ||
+                initiative.Stats == null)
+            {
+                Hide();
+                return;
+            }
+
+            XenoSteelUnitStats stats = initiative.Stats;
 
             _panel.SetActive(true);
 
             _statusText.text =
-            $"<b>機体：{data.unitName}</b>\n" +
-            $"パイロット：{(data.pilot != null ? data.pilot.pilotName : "なし")}\n" +
-            $"HP: {unit.Health} / {stats.HP}\n" +
-            $"EN: {stats.EN}\n" +
-            $"Attack: {stats.Attack}\n" +
-            $"Armor: {stats.Armor}\n" +
-            $"Mobility: {stats.Mobility}\n" +
-            $"Movement: {stats.Movement}\n" +
-            $"Terrain: {GetTerrainAdaptationText(stats.TerrainAdaptation)}\n" +
-            $"Size: {stats.Size}";
+                $"<b>機体：{data.unitName}</b>\n" +
+                $"パイロット：{(data.pilot != null ? data.pilot.pilotName : "なし")}\n" +
+                $"HP: {unit.Health} / {stats.HP}\n" +
+                $"EN: {stats.EN} / {stats.MaxEN}\n" +
+                $"Attack: {stats.Attack}\n" +
+                $"Armor: {stats.Armor}\n" +
+                $"Mobility: {stats.Mobility}\n" +
+                $"Movement: {stats.Movement}\n" +
+                $"Terrain: {GetTerrainAdaptationText(stats.TerrainAdaptation)}\n" +
+                $"Size: {stats.Size}";
         }
 
         public void Hide()
@@ -93,7 +118,8 @@ namespace XenoSteel.Units
             _panel.SetActive(false);
         }
 
-        private string GetTerrainAdaptationText(TerrainAdaptation adaptation)
+        private string GetTerrainAdaptationText(
+            TerrainAdaptation adaptation)
         {
             switch (adaptation)
             {

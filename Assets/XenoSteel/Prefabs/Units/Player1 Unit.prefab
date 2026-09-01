@@ -91,12 +91,12 @@ GameObject:
   - component: {fileID: 7139901449843538749}
   - component: {fileID: 232018564455111798}
   - component: {fileID: 5466876838756724124}
-  - component: {fileID: 6690911799131170672}
   - component: {fileID: -987196005635959891}
   - component: {fileID: 5923291679943292159}
   - component: {fileID: 6221920761458899070}
   - component: {fileID: 3528026959590098192}
   - component: {fileID: 2373984765751414107}
+  - component: {fileID: 7801730159167620690}
   m_Layer: 0
   m_Name: Player1 Unit
   m_TagString: Untagged
@@ -176,18 +176,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _withConfirmation: 0
   _useTouchOptimizedControls: 0
---- !u!114 &6690911799131170672
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 889404546449052493}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a17e3e9f39d99d84a9bb1abd40bac637, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &-987196005635959891
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251,6 +239,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _unitData: {fileID: 11400000, guid: eb53ab1767d236d409aa9428ce446b3b, type: 2}
+--- !u!114 &7801730159167620690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 889404546449052493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91f63a790ad1d2243950e4994774e55c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _direction: 0
+  _visualRoot: {fileID: 5537624217449271752}
 --- !u!1 &1475985202764374347
 GameObject:
   m_ObjectHideFlags: 0

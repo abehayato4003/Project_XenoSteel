@@ -1,17 +1,16 @@
-using TurnBasedStrategyFramework.Common.Controllers;
-using TurnBasedStrategyFramework.Unity.Units;
-using TurnBasedStrategyFramework.Unity.Units.Abilities;
-using XenoSteel.Core;
-
 using System.Collections.Generic;
 using System.Linq;
 using TurnBasedStrategyFramework.Common.Cells;
+using TurnBasedStrategyFramework.Common.Controllers;
+using TurnBasedStrategyFramework.Common.Controllers.GridStates;
 using TurnBasedStrategyFramework.Common.Units;
 using TurnBasedStrategyFramework.Common.Units.Abilities;
-
+using TurnBasedStrategyFramework.Unity.Units;
+using TurnBasedStrategyFramework.Unity.Units.Abilities;
+using UnityEngine;
+using XenoSteel.Core;
 using XenoSteel.Units;
 
-using UnityEngine;
 
 namespace XenoSteel.Combat
 {
@@ -19,87 +18,104 @@ namespace XenoSteel.Combat
     {
         private SkillData _currentSkill;
         private HashSet<IUnit> _attackableUnits;
+        private IGridController _gridController;
 
-        [SerializeField] private XenoSteelSkillSelectionUI _skillSelectionUI;
+        public SkillData CurrentSkill => _currentSkill;
 
         public override void Initialize(IGridController gridController)
         {
             base.Initialize(gridController);
 
-            var unit = UnitReference as Unit;
-
-            if (unit == null)
-            {
-                return;
-            }
-
-            var initiative = unit.GetComponent<XenoSteelInitiative>();
-
-            if (initiative == null)
-            {
-                return;
-            }
-
-            var unitData = initiative.UnitData;
-
-            if (unitData.skills == null || unitData.skills.Length == 0)
-            {
-                return;
-            }
-
-            _currentSkill = unitData.skills[0];
-        }
-
-        public SkillData CurrentSkill => _currentSkill;
-
-        public void SetCurrentSkill(SkillData skill)
-        {
-            _currentSkill = skill;
+            _gridController = gridController;
+            _currentSkill = null;
+            _attackableUnits = null;
         }
 
         public override void OnAbilitySelected(IGridController gridController)
         {
-            if (_currentSkill == null)
+            _gridController = gridController;
+            _currentSkill = null;
+            _attackableUnits = null;
+
+            var skillSelectionUI =
+                FindFirstObjectByType<XenoSteelSkillSelectionUI>();
+
+            if (skillSelectionUI != null)
+            {
+                skillSelectionUI.Show(this);
+            }
+        }
+
+        public void SetCurrentSkill(SkillData skill)
+        {
+            if (skill == null || _gridController == null)
             {
                 return;
             }
 
-            var enemyUnits = gridController.UnitManager
-                .GetEnemyUnits(gridController.TurnContext.CurrentPlayer);
+            if (_attackableUnits != null)
+            {
+                _gridController.UnitManager.UnMark(_attackableUnits);
+            }
+
+            _currentSkill = skill;
+
+            var enemyUnits = _gridController.UnitManager
+                .GetEnemyUnits(_gridController.TurnContext.CurrentPlayer);
 
             _attackableUnits = new HashSet<IUnit>(
                 enemyUnits.Where(unit =>
+                    unit.CurrentCell != null &&
+                    UnitReference.CurrentCell != null &&
                     unit.CurrentCell.GetDistance(UnitReference.CurrentCell)
                     <= _currentSkill.range));
 
-            if (_skillSelectionUI != null)
-            {
-                _skillSelectionUI.Show(this);
-            }
+            Display(_gridController);
         }
 
         public override async void Display(IGridController gridController)
         {
-            if (_attackableUnits == null)
+            if (_currentSkill == null || _attackableUnits == null)
             {
                 return;
             }
 
-            await gridController.UnitManager.MarkAsTargetable(_attackableUnits);
+            await gridController.UnitManager.MarkAsTargetable(
+                _attackableUnits);
         }
 
-        public override void OnUnitClicked(IUnit unit, IGridController gridController)
+        public override void CleanUp(IGridController gridController)
         {
-            Debug.Log("XenoSteelAttackAbility.OnUnitClicked");
+            if (_attackableUnits != null)
+            {
+                gridController.UnitManager.UnMark(_attackableUnits);
+            }
+
+            var skillSelectionUI =
+                FindFirstObjectByType<XenoSteelSkillSelectionUI>();
+
+            if (skillSelectionUI != null)
+            {
+                skillSelectionUI.Hide();
+            }
+        }
+
+        public override async void OnUnitClicked(
+            IUnit unit,
+            IGridController gridController)
+        {
+            if (_currentSkill == null)
+            {
+                Debug.Log("Skill未選択");
+                return;
+            }
 
             if (UnitReference.ActionPoints <= 0)
             {
                 return;
             }
 
-
-            if (_currentSkill == null ||
-                _attackableUnits == null ||
+            if (_attackableUnits == null ||
                 !_attackableUnits.Contains(unit))
             {
                 return;
@@ -113,25 +129,196 @@ namespace XenoSteel.Combat
                 return;
             }
 
-            var attackerInitiative = attackerUnit.GetComponent<XenoSteelInitiative>();
-            var defenderInitiative = defenderUnit.GetComponent<XenoSteelInitiative>();
+            var attackerInitiative =
+                attackerUnit.GetComponent<XenoSteelInitiative>();
 
-            if (attackerInitiative == null || defenderInitiative == null)
+            var defenderInitiative =
+                defenderUnit.GetComponent<XenoSteelInitiative>();
+
+            if (attackerInitiative == null ||
+                defenderInitiative == null)
             {
                 return;
             }
 
-            var damage = XenoSteelDamageCalculator.CalculateDamage(
-                attackerInitiative.Stats,
-                _currentSkill,
-                defenderInitiative.Stats);
+            var stats = attackerInitiative.Stats;
 
-                Debug.Log($"XenoSteel Damage: {damage}");
-                Debug.Log($"Enemy Health before attack: {defenderUnit.Health}");
+            // EN確認
+            if (!stats.CanConsumeEN(_currentSkill.energyCost))
+            {
+                Debug.Log(
+                    $"EN不足: Skill={_currentSkill.skillName}, " +
+                    $"必要EN={_currentSkill.energyCost}, " +
+                    $"現在EN={stats.EN}");
 
-            UnitReference.HumanExecuteAbility(
-            new AttackCommand(unit, damage, (int)attackerUnit.ActionPoints),
-            gridController);
+                return;
+            }
+
+            // ----------------------------------------
+            // 攻撃地点
+            // ----------------------------------------
+
+            ICell attackCell = unit.CurrentCell;
+
+            // ----------------------------------------
+            // areaによる追加対象取得
+            // ----------------------------------------
+
+            var areaTargets = new List<IUnit>();
+
+            var enemyUnits = _gridController.UnitManager
+                .GetEnemyUnits(_unitPlayerNumber());
+
+            foreach (var enemy in enemyUnits)
+            {
+                if (enemy == null ||
+                    enemy.CurrentCell == null)
+                {
+                    continue;
+                }
+
+                int distance =
+                    enemy.CurrentCell.GetDistance(attackCell);
+
+                if (distance <= _currentSkill.area)
+                {
+                    areaTargets.Add(enemy);
+                }
+            }
+
+            // area = 0の場合は選択した対象のみ
+            if (_currentSkill.area <= 0)
+            {
+                areaTargets.Clear();
+                areaTargets.Add(unit);
+            }
+
+            Debug.Log(
+                $"XenoSteel Area Attack: " +
+                $"Skill={_currentSkill.skillName}, " +
+                $"Range={_currentSkill.range}, " +
+                $"Area={_currentSkill.area}, " +
+                $"TargetCount={areaTargets.Count}");
+
+            // ----------------------------------------
+            // 現段階では選択した対象へ攻撃
+            // ----------------------------------------
+
+            var damage =
+                XenoSteelDamageCalculator.CalculateDamage(
+                    stats,
+                    _currentSkill,
+                    defenderInitiative.Stats);
+
+            Debug.Log(
+                $"XenoSteel Skill: {_currentSkill.skillName}");
+
+            Debug.Log(
+                $"XenoSteel Damage: {damage}");
+
+            Debug.Log(
+                $"EN before attack: {stats.EN}");
+
+            foreach (var target in areaTargets)
+            {
+                var targetUnit = target as Unit;
+
+                if (targetUnit == null)
+                {
+                    continue;
+                }
+
+                var targetInitiative =
+                    targetUnit.GetComponent<XenoSteelInitiative>();
+
+                if (targetInitiative == null)
+                {
+                    continue;
+                }
+
+                var targetDamage =
+                    XenoSteelDamageCalculator.CalculateDamage(
+                        stats,
+                        _currentSkill,
+                        targetInitiative.Stats);
+
+                // 選択した中心対象以外はareaDamageMultiplierを適用
+                if (target != unit)
+                {
+                    targetDamage = Mathf.RoundToInt(
+                        targetDamage * _currentSkill.areaDamageMultiplier);
+
+                    targetDamage = Mathf.Max(targetDamage, 1);
+                }
+
+                Debug.Log(
+                    $"Area Target: {targetUnit.name}, " +
+                    $"Damage={targetDamage}");
+
+
+                // 攻撃対象の方向を向く
+                var facing = attackerUnit.GetComponent<XenoSteelUnitFacing>();
+
+                if (facing != null)
+                {
+                    Vector2Int attackerPosition =
+                        new Vector2Int(
+                            attackerUnit.CurrentCell.GridCoordinates.x,
+                            attackerUnit.CurrentCell.GridCoordinates.y);
+
+                    Vector2Int targetPosition =
+                        new Vector2Int(
+                            defenderUnit.CurrentCell.GridCoordinates.x,
+                            defenderUnit.CurrentCell.GridCoordinates.y);
+
+                    Vector2Int difference = targetPosition - attackerPosition;
+
+                    if (Mathf.Abs(difference.x) >= Mathf.Abs(difference.y))
+                    {
+                        facing.SetDirection(
+                            difference.x >= 0
+                                ? XenoSteelUnitFacing.FacingDirection.Right
+                                : XenoSteelUnitFacing.FacingDirection.Left);
+                    }
+                    else
+                    {
+                        facing.SetDirection(
+                            difference.y >= 0
+                                ? XenoSteelUnitFacing.FacingDirection.Up
+                                : XenoSteelUnitFacing.FacingDirection.Down);
+                    }
+                }
+
+                await UnitReference.HumanExecuteAbility(
+                    new AttackCommand(
+                        target,
+                        targetDamage,
+                        (int)attackerUnit.ActionPoints),
+                    gridController);
+            }
+
+            // 攻撃完了後にEN消費
+            if (stats.ConsumeEN(_currentSkill.energyCost))
+            {
+                Debug.Log(
+                    $"EN consumed: {_currentSkill.energyCost}, " +
+                    $"EN after attack: {stats.EN}");
+            }
         }
+
+        public override void OnCellClicked(
+            ICell cell,
+            IGridController gridController)
+        {
+            gridController.GridState =
+                new GridStateAwaitInput();
+        }
+
+        private int _unitPlayerNumber()
+        {
+            return UnitReference.PlayerNumber;
+        }
+
+        
     }
 }

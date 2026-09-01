@@ -323,11 +323,163 @@ TBSFでは `MovementPoints` が移動可能距離を決定するため、既存�
 
 ## 実装項目
 
-* [ ] SkillData（ScriptableObject）の作成
-* [ ] UnitData に習得技リスト（Skills[]）を追加
-* [ ] AttackAction に SkillData を渡す処理を追加
-* [ ] 技選択 UI（簡易）
-* [ ] ダメージ計算処理（AttackAction の既存処理を利用）
+* [x] `SkillData` ScriptableObject の作成
+* [x] `XenoUnitData` に習得技リスト（`skills[]`）を追加
+* [x] `SkillData` の射程（`range`）を攻撃可能範囲の判定に使用
+* [x] XenoSteel独自のAttack Abilityを作成
+* [x] XenoSteel独自のAttack AbilityをUnitへ登録
+* [x] SkillDataを使用した攻撃対象判定
+* [x] `XenoSteelDamageCalculator` によるダメージ計算処理
+* [x] SkillのEN消費処理
+* [x] AIによるSkillの射程判定・攻撃処理
+* [x] AIが射程外の敵へ接近する移動処理
+* [x] 敵がSkillの射程内に入った場合、それ以上必要以上に接近しないAI移動処理
+* [x] XenoSteel独自Behaviour Treeの作成
+* [x] XenoSteel独自AI攻撃処理の作成
+* [x] XenoSteel独自AI移動処理の作成
+* [x] EN消費後のStats UIへの反映
+* [x] 技選択 UI（簡易）
+* [ ] 複数Skillからの技選択
+* [ ] 攻撃範囲（`area`）の実装
+* [ ] 攻撃方向の実装
+
+## Sprint 3で作成・変更したクラス・データ
+
+* `SkillData.cs`
+
+  * 技1つ分のデータをScriptableObjectとして保持
+  * 技名、威力、射程、EN消費、攻撃範囲などを管理
+  * `XenoUnitData.skills[]` から機体が習得している技として参照する
+  * 現時点では `skills[0]` を使用する形で接続している
+  * 将来的に複数の技から選択できるようにする
+
+* `XenoUnitData.cs`
+
+  * 機体データに `SkillData[] skills` を追加
+  * 機体ごとに異なる技を設定できる構造を追加
+  * Sprint 3以降の攻撃・技選択処理で使用する
+  * `XenoSteelInitiative` 経由で攻撃処理・AIからSkill情報を取得する
+
+* `XenoSteelAttackAbility.cs`
+
+  * TBSFの `Ability` を継承したXenoSteel独自の攻撃Ability
+  * TBSF本体の `AttackAbility` / `AttackAbilityImpl` を変更せずに使用する
+  * `XenoSteelInitiative` から `XenoUnitData`と `XenoSteelUnitStats` を取得
+  * 現在使用するSkillとして `skills[0]` を取得
+  * Skillの `range` を使用して攻撃可能な敵を判定
+  * 攻撃可能な敵をTBSFのHighlighter機能で表示
+  * 攻撃対象選択時にXenoSteel独自のダメージ計算へ接続
+  * 攻撃対象選択時に `XenoSteelDamageCalculator` を使用
+  * 攻撃時にSkillのENを消費
+  * TBSFの `AttackCommand` を使用して攻撃を実行
+
+* `XenoSteelDamageCalculator.cs`
+
+  * Skillの威力と機体の攻撃性能、敵機の装甲を使用してダメージを計算する
+  * 戦闘計算をAttack Abilityから分離して管理する
+  * 将来的にパイロットアビリティや機体アビリティによる補正を追加できる構造とする
+  * 計算結果が0以下の場合は最低1ダメージとする
+
+* `XenoSteelUnitStats.cs`
+
+  * `XenoUnitData.attack` を機体の攻撃性能として扱うよう変更
+  * HP / EN / 装甲 / 機動力などと同様に、機体の最終ステータスとして攻撃性能を提供する
+  * ENの最大値を保持
+  * 戦闘中の現在ENを扱えるように拡張
+
+* `XenoSteelInitiative.cs`
+
+  * `XenoSteelUnitData` と `XenoSteelUnitStats` を保持する既存クラス
+  * XenoSteel独自Abilityから機体データ・最終ステータスを参照するために使用
+
+
+* `XenoSteelRegularBehaviourTreeResource.cs`
+
+  * TBSF標準のBehaviour Tree Resourceを直接変更せず、XenoSteel側に独自Behaviour Treeを作成
+  * XenoSteel独自のAI攻撃・移動処理をBehaviour Treeから呼び出す
+  * TBSFのPosition Evaluatorを利用して移動先を評価
+  * 攻撃処理には `XenoSteelAIAttackActionNode` を使用
+  * 移動処理にはXenoSteel側のAI移動処理を使用
+  * TBSF標準の `AttackActionNode` に依存せず、XenoSteelのSkillシステムへ接続
+
+
+* `XenoSteelAIAttackActionNode.cs`
+
+  * XenoSteel用のAI攻撃処理
+  * `XenoUnitData.skills[]` からSkillを取得
+  * Skillごとの `range` を使用して攻撃可能な敵を判定
+  * 射程内に敵が存在する場合、その敵を攻撃
+  * `XenoSteelDamageCalculator` を使用してダメージを計算
+  * `XenoSteelAttackAbility` に使用Skillを設定
+  * TBSFの `AttackCommand` と `AIExecuteAbility()` を使用して攻撃を実行
+  * プレイヤーと同じXenoSteel独自のダメージ計算を使用
+
+
+* `XenoSteelAIMoveActionNode.cs`
+
+  * XenoSteel用のAI移動処理
+  * TBSF標準の移動処理を参考にXenoSteel側で独自実装
+  * 移動可能なセルを評価して移動先を決定
+  * Unitの移動可能範囲を考慮して実際の移動先を決定
+  * 攻撃対象との距離を考慮して移動先を決定
+  * 攻撃対象がSkillの射程外にいる場合は接近する
+  * 攻撃対象がSkillの射程内にいる場合は、それ以上必要以上に接近しない
+
+
+* `XenoUnitStatusUI.cs`
+
+  * XenoSteel独自のUnitステータスUI
+  * `XenoSteelInitiative.Stats` を参照してステータスを表示
+  * 以下を表示
+    - 機体名
+    - パイロット名
+    - HP
+    - EN
+    - Attack
+    - Armor
+    - Mobility
+    - Movement
+    - Terrain
+    - Size
+  * ENを現在値 / 最大値で表示
+  * 実際の `XenoSteelUnitStats` を参照することで、EN消費後の値をUIへ反映
+
+### Sprint 3時点の攻撃処理
+
+現在は以下の構造で攻撃を行う。
+
+```text
+XenoUnitData
+    ↓
+skills[0]
+    ↓
+SkillData
+    ├─ Power
+    ├─ Range
+    ├─ EN Cost
+    └─ Area
+    ↓
+XenoSteelAttackAbility
+    ↓
+攻撃可能な敵をRangeで判定
+    ↓
+XenoSteelDamageCalculator
+    ↓
+ダメージ計算
+    ↓
+TBSF AttackCommand
+    ↓
+攻撃実行
+```
+
+### TBSFとの関係
+
+TBSF標準の `Ability` を継承してXenoSteel独自Abilityを作成し、既存のTBSF攻撃システムを直接変更せずにXenoSteel側から拡張する。
+
+TBSFのUnitはGameObjectに付いている `Ability` コンポーネントを取得して登録するため、`XenoSteelAttackAbility` をUnitへ追加することでAbilityとして登録される。
+
+TBSF標準の `AttackCommand` は攻撃実行部分としてそのまま利用する。
+
 
 ---
 

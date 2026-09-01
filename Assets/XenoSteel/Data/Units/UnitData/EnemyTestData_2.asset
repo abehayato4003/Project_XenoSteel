@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0e88664c2414b4644bde7ed6d89de6f4, type: 3}
-  m_Name: EnemyTestData
+  m_Name: EnemyTestData_2
   m_EditorClassIdentifier: 
   unitName: P-As
   hp: 800
@@ -23,4 +23,4 @@ MonoBehaviour:
   size: 0
   pilot: {fileID: 11400000, guid: 539a723f675624f4696e3d4ed3cc0a20, type: 2}
   skills:
-  - {fileID: 11400000, guid: eb6fef5c38bc868459625a527e3f2068, type: 2}
+  - {fileID: 11400000, guid: d51c988b5f3e71947991c58232042237, type: 2}

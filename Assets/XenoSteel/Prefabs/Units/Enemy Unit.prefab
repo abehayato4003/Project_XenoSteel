@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5783579463618681574}
-  - component: {fileID: 6200491224123305071}
+  - component: {fileID: 4807351806539964125}
   m_Layer: 0
   m_Name: Brain
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 8667705795363643672}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6200491224123305071
+--- !u!114 &4807351806539964125
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,7 +41,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6319255407355988904}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a3f517da95d22748953401151eb338b, type: 3}
+  m_Script: {fileID: 11500000, guid: 20e9a984b903245428c2091fcb9eff4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _actionDelay: 100
@@ -72,7 +72,7 @@ PrefabInstance:
     - target: {fileID: 232018564455111798, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
       propertyPath: _behaviourTreeResource
       value: 
-      objectReference: {fileID: 6200491224123305071}
+      objectReference: {fileID: 4807351806539964125}
     - target: {fileID: 889404546449052493, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
       propertyPath: m_Name
       value: Enemy Unit
@@ -143,6 +143,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 889404546449052493, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
       insertIndex: -1
       addedObject: {fileID: -3427662235254601766}
+    - targetCorrespondingSourceObject: {fileID: 889404546449052493, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1862141074172539802}
   m_SourcePrefab: {fileID: 100100000, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
 --- !u!1 &1659622970264406376 stripped
 GameObject:
@@ -212,6 +215,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _unitData: {fileID: 11400000, guid: 4a9bd904f599bc64dace8771e30dad7b, type: 2}
+--- !u!114 &1862141074172539802
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1659622970264406376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91f63a790ad1d2243950e4994774e55c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _direction: 3
 --- !u!4 &8667705795363643672 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7139901449843538749, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
