@@ -21,6 +21,13 @@ namespace XenoSteel.Combat
         [Header("攻撃範囲")]
         public int area = 0;
 
+        [Header("攻撃形状")]
+        public SkillAttackShape attackShape = SkillAttackShape.Single;
+
+        [Header("攻撃幅")]
+        [Min(1)]
+        public int attackWidth = 1;
+
         [Header("範囲攻撃ダメージ")]
         [Range(0f, 1f)]
         public float areaDamageMultiplier = 0.5f;
@@ -30,5 +37,12 @@ namespace XenoSteel.Combat
 
         [Header("使用条件")]
         public bool requiresTarget = true;
+    }
+
+    public enum SkillAttackShape
+    {
+        Single,     // 単体
+        Line,       // 正面
+        Cross,      // 十字
     }
 }

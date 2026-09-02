@@ -16,6 +16,9 @@ MonoBehaviour:
   range: 5
   power: 200
   energyCost: 60
-  area: 1
+  area: 0
+  attackShape: 2
+  attackWidth: 1
+  areaDamageMultiplier: 1
   attribute: 
   requiresTarget: 1

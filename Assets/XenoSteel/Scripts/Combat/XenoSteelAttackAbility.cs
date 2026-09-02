@@ -60,15 +60,11 @@ namespace XenoSteel.Combat
 
             _currentSkill = skill;
 
-            var enemyUnits = _gridController.UnitManager
-                .GetEnemyUnits(_gridController.TurnContext.CurrentPlayer);
-
             _attackableUnits = new HashSet<IUnit>(
-                enemyUnits.Where(unit =>
-                    unit.CurrentCell != null &&
-                    UnitReference.CurrentCell != null &&
-                    unit.CurrentCell.GetDistance(UnitReference.CurrentCell)
-                    <= _currentSkill.range));
+                XenoSteelAttackTargeting.GetAttackableTargets(
+                    UnitReference,
+                    _currentSkill,
+                    _gridController));
 
             Display(_gridController);
         }
@@ -155,10 +151,15 @@ namespace XenoSteel.Combat
             }
 
             // ----------------------------------------
-            // 攻撃地点
+            // 攻撃形状による対象取得
             // ----------------------------------------
 
-            ICell attackCell = unit.CurrentCell;
+            var affectedTargets =
+                XenoSteelAttackTargeting.GetAffectedTargets(
+                    UnitReference,
+                    unit,
+                    _currentSkill,
+                    _gridController);
 
             // ----------------------------------------
             // areaによる追加対象取得
@@ -166,39 +167,103 @@ namespace XenoSteel.Combat
 
             var areaTargets = new List<IUnit>();
 
-            var enemyUnits = _gridController.UnitManager
-                .GetEnemyUnits(_unitPlayerNumber());
-
-            foreach (var enemy in enemyUnits)
-            {
-                if (enemy == null ||
-                    enemy.CurrentCell == null)
-                {
-                    continue;
-                }
-
-                int distance =
-                    enemy.CurrentCell.GetDistance(attackCell);
-
-                if (distance <= _currentSkill.area)
-                {
-                    areaTargets.Add(enemy);
-                }
-            }
-
-            // area = 0の場合は選択した対象のみ
             if (_currentSkill.area <= 0)
             {
-                areaTargets.Clear();
-                areaTargets.Add(unit);
+                // area = 0なら、攻撃形状で決まった対象をそのまま使用
+                areaTargets.AddRange(affectedTargets);
+            }
+            else
+            {
+                // 攻撃形状で決まった対象それぞれを中心として
+                // area範囲内の敵を追加
+                var enemyUnits = _gridController.UnitManager
+                    .GetEnemyUnits(_unitPlayerNumber());
+
+                
+
+                foreach (var target in affectedTargets)
+                {
+                    if (target == null ||
+                        target.CurrentCell == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var enemy in enemyUnits)
+                    {
+                        if (enemy == null ||
+                            enemy.CurrentCell == null)
+                        {
+                            continue;
+                        }
+
+                        int distance =
+                            enemy.CurrentCell.GetDistance(
+                                target.CurrentCell);
+
+                        if (distance <= _currentSkill.area &&
+                            !areaTargets.Contains(enemy))
+                        {
+                            areaTargets.Add(enemy);
+                        }
+                    }
+                }
             }
 
-            Debug.Log(
-                $"XenoSteel Area Attack: " +
-                $"Skill={_currentSkill.skillName}, " +
-                $"Range={_currentSkill.range}, " +
-                $"Area={_currentSkill.area}, " +
-                $"TargetCount={areaTargets.Count}");
+            // ----------------------------------------
+                // 選択した攻撃対象の方向を向く
+                // ----------------------------------------
+
+                var facing =
+                    attackerUnit.GetComponent<XenoSteelUnitFacing>();
+
+                if (facing != null)
+                {
+                    Vector2Int attackerPosition =
+                        new Vector2Int(
+                            attackerUnit.CurrentCell.GridCoordinates.x,
+                            attackerUnit.CurrentCell.GridCoordinates.y);
+
+                    Vector2Int targetPosition =
+                        new Vector2Int(
+                            defenderUnit.CurrentCell.GridCoordinates.x,
+                            defenderUnit.CurrentCell.GridCoordinates.y);
+
+                    Vector2Int difference =
+                        targetPosition - attackerPosition;
+
+                    if (Mathf.Abs(difference.x) >= Mathf.Abs(difference.y))
+                    {
+                        facing.SetDirection(
+                            difference.x >= 0
+                                ? XenoSteelUnitFacing.FacingDirection.Right
+                                : XenoSteelUnitFacing.FacingDirection.Left);
+                    }
+                    else
+                    {
+                        facing.SetDirection(
+                            difference.y >= 0
+                                ? XenoSteelUnitFacing.FacingDirection.Up
+                                : XenoSteelUnitFacing.FacingDirection.Down);
+                    }
+
+                    Debug.Log(
+                        $"Attack Facing: " +
+                        $"Attacker={attackerPosition}, " +
+                        $"Target={targetPosition}, " +
+                        $"Difference={difference}, " +
+                        $"Direction={facing.Direction}");
+
+                    facing.SetAttacking(true);
+                }
+            // Debug.Log(
+            //     $"XenoSteel Area Attack: " +
+            //     $"Skill={_currentSkill.skillName}, " +
+            //     $"Range={_currentSkill.range}, " +
+            //     $"Area={_currentSkill.area}, " +
+            //     $"TargetCount={areaTargets.Count}");
+
+            
 
             // ----------------------------------------
             // 現段階では選択した対象へ攻撃
@@ -256,46 +321,16 @@ namespace XenoSteel.Combat
                     $"Damage={targetDamage}");
 
 
-                // 攻撃対象の方向を向く
-                var facing = attackerUnit.GetComponent<XenoSteelUnitFacing>();
-
-                if (facing != null)
-                {
-                    Vector2Int attackerPosition =
-                        new Vector2Int(
-                            attackerUnit.CurrentCell.GridCoordinates.x,
-                            attackerUnit.CurrentCell.GridCoordinates.y);
-
-                    Vector2Int targetPosition =
-                        new Vector2Int(
-                            defenderUnit.CurrentCell.GridCoordinates.x,
-                            defenderUnit.CurrentCell.GridCoordinates.y);
-
-                    Vector2Int difference = targetPosition - attackerPosition;
-
-                    if (Mathf.Abs(difference.x) >= Mathf.Abs(difference.y))
-                    {
-                        facing.SetDirection(
-                            difference.x >= 0
-                                ? XenoSteelUnitFacing.FacingDirection.Right
-                                : XenoSteelUnitFacing.FacingDirection.Left);
-                    }
-                    else
-                    {
-                        facing.SetDirection(
-                            difference.y >= 0
-                                ? XenoSteelUnitFacing.FacingDirection.Up
-                                : XenoSteelUnitFacing.FacingDirection.Down);
-                    }
-                }
-
                 await UnitReference.HumanExecuteAbility(
                     new AttackCommand(
                         target,
                         targetDamage,
                         (int)attackerUnit.ActionPoints),
                     gridController);
+
             }
+
+            facing.SetAttacking(false);
 
             // 攻撃完了後にEN消費
             if (stats.ConsumeEN(_currentSkill.energyCost))
