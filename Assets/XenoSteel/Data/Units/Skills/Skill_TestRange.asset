@@ -17,7 +17,7 @@ MonoBehaviour:
   power: 200
   energyCost: 60
   area: 0
-  attackShape: 2
+  attackShape: 0
   attackWidth: 1
   areaDamageMultiplier: 1
   attribute: 

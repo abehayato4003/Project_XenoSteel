@@ -339,9 +339,9 @@ TBSFでは `MovementPoints` が移動可能距離を決定するため、既存�
 * [x] XenoSteel独自AI移動処理の作成
 * [x] EN消費後のStats UIへの反映
 * [x] 技選択 UI（簡易）
-* [ ] 複数Skillからの技選択
-* [ ] 攻撃範囲（`area`）の実装
-* [ ] 攻撃方向の実装
+* [x] 複数Skillからの技選択
+* [x] 攻撃範囲（`area`）の実装
+* [x] 攻撃方向の実装
 
 ## Sprint 3で作成・変更したクラス・データ
 
@@ -349,82 +349,107 @@ TBSFでは `MovementPoints` が移動可能距離を決定するため、既存�
 
   * 技1つ分のデータをScriptableObjectとして保持
   * 技名、威力、射程、EN消費、攻撃範囲などを管理
+  * 攻撃形状として `Single` / `Line` / `Cross` を設定可能
+  * `Line` の攻撃幅を1～10で設定可能
+  * 範囲攻撃時の中心対象以外へのダメージ倍率を設定可能
   * `XenoUnitData.skills[]` から機体が習得している技として参照する
-  * 現時点では `skills[0]` を使用する形で接続している
-  * 将来的に複数の技から選択できるようにする
+  * 今後、属性・特殊効果・追加の攻撃形状などを拡張する際の基盤として使用する
 
 * `XenoUnitData.cs`
 
   * 機体データに `SkillData[] skills` を追加
-  * 機体ごとに異なる技を設定できる構造を追加
-  * Sprint 3以降の攻撃・技選択処理で使用する
-  * `XenoSteelInitiative` 経由で攻撃処理・AIからSkill情報を取得する
+  * 機体ごとに異なる複数のSkillを設定できる構造を追加
+  * PlayerのSkill選択およびEnemy AIのSkill選択から参照する
+  * Sprint 3以降の攻撃・戦闘処理で継続使用する
 
 * `XenoSteelAttackAbility.cs`
 
   * TBSFの `Ability` を継承したXenoSteel独自の攻撃Ability
   * TBSF本体の `AttackAbility` / `AttackAbilityImpl` を変更せずに使用する
-  * `XenoSteelInitiative` から `XenoUnitData`と `XenoSteelUnitStats` を取得
-  * 現在使用するSkillとして `skills[0]` を取得
-  * Skillの `range` を使用して攻撃可能な敵を判定
+  * `XenoSteelInitiative` から `XenoUnitData` と `XenoSteelUnitStats` を取得
+  * 現在使用するSkillを保持し、Player / Enemy双方の攻撃処理から使用する
+  * Skillの `range` を使用して攻撃可能な対象を判定
   * 攻撃可能な敵をTBSFのHighlighter機能で表示
-  * 攻撃対象選択時にXenoSteel独自のダメージ計算へ接続
-  * 攻撃対象選択時に `XenoSteelDamageCalculator` を使用
-  * 攻撃時にSkillのENを消費
-  * TBSFの `AttackCommand` を使用して攻撃を実行
+  * `XenoSteelAttackTargeting` と連携して攻撃対象を決定
+  * `XenoSteelDamageCalculator` を使用してダメージを計算
+  * SkillのEN消費を実行
+  * `area` による範囲攻撃に対応
+  * 範囲攻撃時の中心対象と周囲の対象でダメージ倍率を変更可能
+  * `Single` / `Line` / `Cross` の攻撃形状に対応
+  * `Line` の攻撃幅を使用した複数対象への攻撃に対応
+  * TBSFの `AttackCommand` を使用して実際の攻撃を実行する
+  * 攻撃方向についてはSprint 4の戦闘演出・アニメーション実装時に正式調整する
+
+* `XenoSteelAttackTargeting.cs`
+
+  * XenoSteel独自の攻撃対象判定を担当
+  * `SkillData` の攻撃形状を使用して対象セル・対象ユニットを判定
+  * `Single` / `Line` / `Cross` の攻撃形状に対応
+  * `Line` の攻撃幅を使用した複数セルへの攻撃に対応
+  * 攻撃対象判定処理を `XenoSteelAttackAbility` から分離
+  * 今後、新しい攻撃形状や攻撃範囲ルールを追加しやすい構造とする
 
 * `XenoSteelDamageCalculator.cs`
 
-  * Skillの威力と機体の攻撃性能、敵機の装甲を使用してダメージを計算する
-  * 戦闘計算をAttack Abilityから分離して管理する
-  * 将来的にパイロットアビリティや機体アビリティによる補正を追加できる構造とする
+  * Skillの威力、機体のAttack、敵機のArmorを使用してダメージを計算
+  * 戦闘計算をAttack Abilityから分離して管理
   * 計算結果が0以下の場合は最低1ダメージとする
+  * Player / Enemyの双方から同じダメージ計算処理を使用する
+  * 将来的なパイロットアビリティ・機体アビリティによる補正追加に対応する
 
 * `XenoSteelUnitStats.cs`
 
-  * `XenoUnitData.attack` を機体の攻撃性能として扱うよう変更
-  * HP / EN / 装甲 / 機動力などと同様に、機体の最終ステータスとして攻撃性能を提供する
+  * `XenoUnitData.attack` を機体のAttack性能として提供
+  * HP / EN / Armor / Mobility / Movementなどの最終ステータスを提供
   * ENの最大値を保持
-  * 戦闘中の現在ENを扱えるように拡張
+  * 戦闘中の現在ENを管理
+  * Skill使用時のEN消費を処理
+  * ダメージ計算・攻撃処理から現在のユニット性能を参照するために使用する
 
 * `XenoSteelInitiative.cs`
 
-  * `XenoSteelUnitData` と `XenoSteelUnitStats` を保持する既存クラス
-  * XenoSteel独自Abilityから機体データ・最終ステータスを参照するために使用
+  * `XenoUnitData` と `XenoSteelUnitStats` を保持
+  * XenoSteel独自AbilityやAIから機体データ・最終ステータスを参照するために使用
+  * Sprint 2.5までのパイロット補正を反映した最終ステータスをSprint 3の戦闘処理へ接続する
 
+* `XenoSteelSkillSelectionUI.cs`
 
-* `XenoSteelRegularBehaviourTreeResource.cs`
-
-  * TBSF標準のBehaviour Tree Resourceを直接変更せず、XenoSteel側に独自Behaviour Treeを作成
-  * XenoSteel独自のAI攻撃・移動処理をBehaviour Treeから呼び出す
-  * TBSFのPosition Evaluatorを利用して移動先を評価
-  * 攻撃処理には `XenoSteelAIAttackActionNode` を使用
-  * 移動処理にはXenoSteel側のAI移動処理を使用
-  * TBSF標準の `AttackActionNode` に依存せず、XenoSteelのSkillシステムへ接続
-
+  * Playerが使用するSkillを選択するための簡易UI
+  * `XenoUnitData.skills[]` に設定された複数のSkillを表示・選択
+  * 選択したSkillを `XenoSteelAttackAbility` へ渡して攻撃に使用する
+  * Sprint 4以降で正式な戦闘UIへ発展・整備する
 
 * `XenoSteelAIAttackActionNode.cs`
 
   * XenoSteel用のAI攻撃処理
-  * `XenoUnitData.skills[]` からSkillを取得
-  * Skillごとの `range` を使用して攻撃可能な敵を判定
-  * 射程内に敵が存在する場合、その敵を攻撃
-  * `XenoSteelDamageCalculator` を使用してダメージを計算
-  * `XenoSteelAttackAbility` に使用Skillを設定
-  * TBSFの `AttackCommand` と `AIExecuteAbility()` を使用して攻撃を実行
-  * プレイヤーと同じXenoSteel独自のダメージ計算を使用
-
+  * `XenoUnitData.skills[]` から使用可能なSkillを取得
+  * SkillごとのEN消費と射程を確認
+  * 射程内に攻撃対象が存在するSkillを候補とする
+  * `XenoSteelDamageCalculator` を使用して各Skillの予測ダメージを計算
+  * 使用可能なSkillの中から予測ダメージが最も高いSkillを選択
+  * `XenoSteelAttackAbility` に選択したSkillを設定
+  * TBSFの `AttackCommand` と `AIExecuteAbility()` を使用して攻撃を実行する
+  * Playerと同じXenoSteel独自のダメージ計算を使用する
 
 * `XenoSteelAIMoveActionNode.cs`
 
   * XenoSteel用のAI移動処理
-  * TBSF標準の移動処理を参考にXenoSteel側で独自実装
+  * TBSF標準の移動処理を参考にXenoSteel側で実装
   * 移動可能なセルを評価して移動先を決定
-  * Unitの移動可能範囲を考慮して実際の移動先を決定
+  * Unitの移動可能範囲を考慮して移動先を決定
   * 攻撃対象との距離を考慮して移動先を決定
-  * 攻撃対象がSkillの射程外にいる場合は接近する
-  * 攻撃対象がSkillの射程内にいる場合は、それ以上必要以上に接近しない
+  * 攻撃対象が使用可能なSkillの射程外にいる場合は接近する
+  * 攻撃対象がSkillの射程内にいる場合は必要以上に接近しない
+  * TBSFの `MoveCommand` を使用して実際の移動を実行する
 
+* `XenoSteelRegularBehaviourTreeResource.cs`
+
+  * TBSF標準のBehaviour Tree Resourceを直接変更せず、XenoSteel側に独自Behaviour Treeを作成
+  * XenoSteel独自の攻撃・移動Action NodeをBehaviour Treeから呼び出す
+  * TBSFのPosition Evaluatorを利用して移動先を評価
+  * 攻撃処理には `XenoSteelAIAttackActionNode` を使用
+  * 移動処理には `XenoSteelAIMoveActionNode` を使用
+  * TBSF標準の `AttackActionNode` に依存せず、XenoSteelのSkillシステムへ接続する
 
 * `XenoUnitStatusUI.cs`
 
@@ -442,7 +467,38 @@ TBSFでは `MovementPoints` が移動可能距離を決定するため、既存�
     - Terrain
     - Size
   * ENを現在値 / 最大値で表示
-  * 実際の `XenoSteelUnitStats` を参照することで、EN消費後の値をUIへ反映
+  * `XenoSteelUnitStats` を参照することで、Skill使用後のEN消費をUIへ反映する
+  * Sprint 4で正式なステータスUIへ発展・整備する
+
+* `XenoSteelUnitFacing.cs`
+
+  * Unitの向き（Facing）を管理するXenoSteel独自コンポーネント
+  * `Up` / `Down` / `Left` / `Right` の4方向を管理
+  * Unitの移動方向に応じて向きを変更する処理を実装
+  * Visual Rootの回転を変更して、Unitの見た目の向きを制御する
+  * 攻撃中は移動による自動的な向き変更を抑制するための制御を追加
+  * 攻撃対象の方向へUnitを向ける処理と接続
+  * Sprint 3では基本的なFacing処理まで実装
+  * 攻撃アニメーションによるTransform移動との干渉など、細かな向きの制御はSprint 4で調整する
+
+### Sprint 3の実装結果
+
+* [x] `SkillData` ScriptableObjectを作成
+* [x] `XenoUnitData` に複数Skillを設定できる構造を追加
+* [x] Playerが複数Skillから使用するSkillを選択できる
+* [x] Skillごとの射程を攻撃対象判定に使用
+* [x] SkillごとのEN消費を実装
+* [x] Skillによるダメージ計算を実装
+* [x] Player / Enemyの双方でXenoSteel独自のダメージ計算を使用
+* [x] 範囲攻撃（`area`）を実装
+* [x] `Single` / `Line` / `Cross` の攻撃形状を設定可能
+* [x] `Line` の攻撃幅を設定可能
+* [x] 範囲攻撃時のダメージ倍率を設定可能
+* [x] Enemy AIが複数Skillから使用するSkillを選択可能
+* [x] Enemy AIが予測ダメージを比較してSkillを選択
+* [x] XenoSteel独自の攻撃対象判定を実装
+* [x] TBSF標準の `AttackCommand` を利用して攻撃を実行
+* [x] TBSF標準コードを直接変更せずXenoSteel側から攻撃システムを拡張
 
 ### Sprint 3時点の攻撃処理
 

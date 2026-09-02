@@ -211,11 +211,16 @@ namespace XenoSteel.Combat
             }
 
             // ----------------------------------------
-                // 選択した攻撃対象の方向を向く
-                // ----------------------------------------
+            // 選択した攻撃対象の方向を向く
+            // ----------------------------------------
 
                 var facing =
                     attackerUnit.GetComponent<XenoSteelUnitFacing>();
+
+                if (facing != null)
+                {
+                    facing.SetAttacking(true);
+                }
 
                 if (facing != null)
                 {
@@ -254,7 +259,7 @@ namespace XenoSteel.Combat
                         $"Difference={difference}, " +
                         $"Direction={facing.Direction}");
 
-                    facing.SetAttacking(true);
+                    
                 }
             // Debug.Log(
             //     $"XenoSteel Area Attack: " +
@@ -283,6 +288,10 @@ namespace XenoSteel.Combat
 
             Debug.Log(
                 $"EN before attack: {stats.EN}");
+
+
+
+            
 
             foreach (var target in areaTargets)
             {
@@ -330,7 +339,11 @@ namespace XenoSteel.Combat
 
             }
 
-            facing.SetAttacking(false);
+            if (facing != null)
+            {
+                facing.SetAttacking(false);
+            }
+
 
             // 攻撃完了後にEN消費
             if (stats.ConsumeEN(_currentSkill.energyCost))

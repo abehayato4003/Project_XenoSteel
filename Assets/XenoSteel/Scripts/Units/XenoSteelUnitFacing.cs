@@ -24,6 +24,10 @@ namespace XenoSteel.Units
 
         private bool _isAttacking;
 
+        private int _attackEndIgnoreFrames;
+
+
+
         private void Awake()
         {
             if (_visualRoot == null)
@@ -38,15 +42,22 @@ namespace XenoSteel.Units
 
         private void Update()
         {
-            if (_isAttacking)
-            {
-                return;
-            }
-
             Vector3 currentPosition = transform.position;
             Vector3 movement = currentPosition - _lastPosition;
 
-            // 実際に移動している時だけ向きを更新
+            if (_isAttacking)
+            {
+                _lastPosition = currentPosition;
+                return;
+            }
+
+            if (_attackEndIgnoreFrames > 0)
+            {
+                _attackEndIgnoreFrames--;
+                _lastPosition = currentPosition;
+                return;
+            }
+
             if (movement.sqrMagnitude > 0.0001f)
             {
                 if (Mathf.Abs(movement.x) >= Mathf.Abs(movement.z))
@@ -74,9 +85,8 @@ namespace XenoSteel.Units
 
             if (!attacking)
             {
-                // 攻撃中に発生した位置変化を
-                // 通常移動として判定しない
                 _lastPosition = transform.position;
+                _attackEndIgnoreFrames = 5;
             }
         }
 
@@ -85,7 +95,9 @@ namespace XenoSteel.Units
             _direction = direction;
 
             Debug.Log(
-                $"SetDirection: {direction}\n" +
+                $"SetDirection: {direction}, " +
+                $"Unit={gameObject.name}, " +
+                $"Attacking={_isAttacking}\n" +
                 System.Environment.StackTrace
             );
 

@@ -8,6 +8,7 @@ using TurnBasedStrategyFramework.Common.Units;
 using TurnBasedStrategyFramework.Common.Units.Abilities;
 
 using XenoSteel.Core;
+using XenoSteel.Units;
 
 namespace XenoSteel.AI
 {
@@ -165,6 +166,8 @@ namespace XenoSteel.AI
             }
 
             var selected = reachableCandidates.First();
+
+
 
             // 射程内に入った場合は、その位置で止まる
             // 射程外なら可能な限り敵へ近づく
