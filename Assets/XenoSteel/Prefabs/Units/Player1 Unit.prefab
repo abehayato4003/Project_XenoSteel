@@ -97,6 +97,7 @@ GameObject:
   - component: {fileID: 3528026959590098192}
   - component: {fileID: 2373984765751414107}
   - component: {fileID: 7801730159167620690}
+  - component: {fileID: -4679176977870141745}
   m_Layer: 0
   m_Name: Player1 Unit
   m_TagString: Untagged
@@ -120,6 +121,7 @@ Transform:
   - {fileID: 5537624217449271752}
   - {fileID: 8361965160634434916}
   - {fileID: 4952239924164895987}
+  - {fileID: 3113080706240481276}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &232018564455111798
@@ -253,6 +255,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _direction: 0
   _visualRoot: {fileID: 5537624217449271752}
+--- !u!114 &-4679176977870141745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 889404546449052493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a80b022c7c1f3346a9e5db1f6a4f672, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damagePopupPrefab: {fileID: 5581572343335145772, guid: 70cfce30215a35b4b94e82b95d283a65, type: 3}
+  damageCanvas: {fileID: 0}
+  popupPoint: {fileID: 3113080706240481276}
 --- !u!1 &1475985202764374347
 GameObject:
   m_ObjectHideFlags: 0
@@ -495,6 +512,37 @@ MonoBehaviour:
   _color: {r: 1, g: 1, b: 1, a: 1}
   _propertyName: _Color
   _materialIndex: 0
+--- !u!1 &3348370933979594842
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3113080706240481276}
+  m_Layer: 0
+  m_Name: PopupPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3113080706240481276
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3348370933979594842}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 2.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7139901449843538749}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7906399437068097867
 GameObject:
   m_ObjectHideFlags: 0

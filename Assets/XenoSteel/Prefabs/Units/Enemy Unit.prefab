@@ -61,6 +61,37 @@ MonoBehaviour:
   _lowHealthDistancePositionEvaluatorThreshold: 10
   _healthTargetEvaluatorWeight: 1
   _damageGivenTargetEvaluatorWeight: 1
+--- !u!1 &7598073043499461576
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6440941684628423450}
+  m_Layer: 0
+  m_Name: PopupPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6440941684628423450
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7598073043499461576}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 2.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8667705795363643672}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1972549103481444901
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -125,6 +156,9 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 7139901449843538749, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
+      insertIndex: 0
+      addedObject: {fileID: 6440941684628423450}
+    - targetCorrespondingSourceObject: {fileID: 7139901449843538749, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5783579463618681574}
     m_AddedComponents:
@@ -146,6 +180,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 889404546449052493, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1862141074172539802}
+    - targetCorrespondingSourceObject: {fileID: 889404546449052493, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6884241663706505105}
   m_SourcePrefab: {fileID: 100100000, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
 --- !u!1 &1659622970264406376 stripped
 GameObject:
@@ -228,6 +265,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _direction: 3
+  _visualRoot: {fileID: 0}
+--- !u!114 &6884241663706505105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1659622970264406376}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a80b022c7c1f3346a9e5db1f6a4f672, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damagePopupPrefab: {fileID: 5581572343335145772, guid: 70cfce30215a35b4b94e82b95d283a65, type: 3}
+  damageCanvas: {fileID: 0}
+  popupPoint: {fileID: 6440941684628423450}
 --- !u!4 &8667705795363643672 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7139901449843538749, guid: 18b31fcb385dcbb418ab11da7ad56422, type: 3}
