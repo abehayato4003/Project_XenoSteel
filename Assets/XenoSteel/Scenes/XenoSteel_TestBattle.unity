@@ -8508,6 +8508,10 @@ PrefabInstance:
       propertyPath: _playerNumber
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1862141074172539802, guid: 0141ecedf1fd66b4ea79fd5afcda4f3c, type: 3}
+      propertyPath: _direction
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6884241663706505105, guid: 0141ecedf1fd66b4ea79fd5afcda4f3c, type: 3}
       propertyPath: damageCanvas
       value: 
@@ -9309,6 +9313,14 @@ PrefabInstance:
       propertyPath: _currentCell
       value: 
       objectReference: {fileID: 1218090116}
+    - target: {fileID: 232018564455111798, guid: b764de7a9295c884d98d901ae741df01, type: 3}
+      propertyPath: _markAsAttackingFn.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 232018564455111798, guid: b764de7a9295c884d98d901ae741df01, type: 3}
+      propertyPath: _markAsDefendingFn.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 889404546449052493, guid: b764de7a9295c884d98d901ae741df01, type: 3}
       propertyPath: m_Name
       value: Player1 Unit
@@ -9726,6 +9738,22 @@ PrefabInstance:
     - target: {fileID: 1758564750777796179, guid: 0141ecedf1fd66b4ea79fd5afcda4f3c, type: 3}
       propertyPath: _playerNumber
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1758564750777796179, guid: 0141ecedf1fd66b4ea79fd5afcda4f3c, type: 3}
+      propertyPath: _markAsAttackingFn.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1758564750777796179, guid: 0141ecedf1fd66b4ea79fd5afcda4f3c, type: 3}
+      propertyPath: _markAsDefendingFn.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1758564750777796179, guid: 0141ecedf1fd66b4ea79fd5afcda4f3c, type: 3}
+      propertyPath: '_markAsAttackingFn.Array.data[0]'
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1862141074172539802, guid: 0141ecedf1fd66b4ea79fd5afcda4f3c, type: 3}
+      propertyPath: _direction
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6884241663706505105, guid: 0141ecedf1fd66b4ea79fd5afcda4f3c, type: 3}
       propertyPath: damageCanvas
@@ -12425,6 +12453,10 @@ PrefabInstance:
     - target: {fileID: 3646175435231873495, guid: 32f2cdd1c8c0a84459707486eb530de0, type: 3}
       propertyPath: _playerNumber
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3686718698297883678, guid: 32f2cdd1c8c0a84459707486eb530de0, type: 3}
+      propertyPath: _direction
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4464850792176830188, guid: 32f2cdd1c8c0a84459707486eb530de0, type: 3}
       propertyPath: m_Name

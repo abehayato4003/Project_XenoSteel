@@ -29,7 +29,7 @@ namespace XenoSteel.AI
             _gridController = gridController;
         }
 
-        public Task<bool> Execute(bool debugMode)
+        public async Task<bool> Execute(bool debugMode)
         {
             if (_unit.ActionPoints <= 0)
             {

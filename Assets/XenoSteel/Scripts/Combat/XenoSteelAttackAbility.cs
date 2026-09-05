@@ -22,6 +22,9 @@ namespace XenoSteel.Combat
 
         public SkillData CurrentSkill => _currentSkill;
 
+        [SerializeField]
+        private XenoSteelAttackPresentation attackPresentation;
+
         public override void Initialize(IGridController gridController)
         {
             base.Initialize(gridController);
@@ -138,13 +141,14 @@ namespace XenoSteel.Combat
             }
 
             var stats = attackerInitiative.Stats;
+            int energyCost = _currentSkill.energyCost;
 
             // EN確認
-            if (!stats.CanConsumeEN(_currentSkill.energyCost))
+            if (!stats.CanConsumeEN(energyCost))
             {
                 Debug.Log(
                     $"EN不足: Skill={_currentSkill.skillName}, " +
-                    $"必要EN={_currentSkill.energyCost}, " +
+                    $"必要EN={energyCost}, " +
                     $"現在EN={stats.EN}");
 
                 return;
@@ -210,57 +214,57 @@ namespace XenoSteel.Combat
                 }
             }
 
-            // ----------------------------------------
-            // 選択した攻撃対象の方向を向く
-            // ----------------------------------------
+            // // ----------------------------------------
+            // // 選択した攻撃対象の方向を向く
+            // // ----------------------------------------
 
-                var facing =
-                    attackerUnit.GetComponent<XenoSteelUnitFacing>();
+            //     var facing =
+            //         attackerUnit.GetComponent<XenoSteelUnitFacing>();
 
-                if (facing != null)
-                {
-                    facing.SetAttacking(true);
-                }
+            //     if (facing != null)
+            //     {
+            //         facing.SetAttacking(true);
+            //     }
 
-                if (facing != null)
-                {
-                    Vector2Int attackerPosition =
-                        new Vector2Int(
-                            attackerUnit.CurrentCell.GridCoordinates.x,
-                            attackerUnit.CurrentCell.GridCoordinates.y);
+            //     if (facing != null)
+            //     {
+            //         Vector2Int attackerPosition =
+            //             new Vector2Int(
+            //                 attackerUnit.CurrentCell.GridCoordinates.x,
+            //                 attackerUnit.CurrentCell.GridCoordinates.y);
 
-                    Vector2Int targetPosition =
-                        new Vector2Int(
-                            defenderUnit.CurrentCell.GridCoordinates.x,
-                            defenderUnit.CurrentCell.GridCoordinates.y);
+            //         Vector2Int targetPosition =
+            //             new Vector2Int(
+            //                 defenderUnit.CurrentCell.GridCoordinates.x,
+            //                 defenderUnit.CurrentCell.GridCoordinates.y);
 
-                    Vector2Int difference =
-                        targetPosition - attackerPosition;
+            //         Vector2Int difference =
+            //             targetPosition - attackerPosition;
 
-                    if (Mathf.Abs(difference.x) >= Mathf.Abs(difference.y))
-                    {
-                        facing.SetDirection(
-                            difference.x >= 0
-                                ? XenoSteelUnitFacing.FacingDirection.Right
-                                : XenoSteelUnitFacing.FacingDirection.Left);
-                    }
-                    else
-                    {
-                        facing.SetDirection(
-                            difference.y >= 0
-                                ? XenoSteelUnitFacing.FacingDirection.Up
-                                : XenoSteelUnitFacing.FacingDirection.Down);
-                    }
+            //         if (Mathf.Abs(difference.x) >= Mathf.Abs(difference.y))
+            //         {
+            //             facing.SetDirection(
+            //                 difference.x >= 0
+            //                     ? XenoSteelUnitFacing.FacingDirection.Right
+            //                     : XenoSteelUnitFacing.FacingDirection.Left);
+            //         }
+            //         else
+            //         {
+            //             facing.SetDirection(
+            //                 difference.y >= 0
+            //                     ? XenoSteelUnitFacing.FacingDirection.Up
+            //                     : XenoSteelUnitFacing.FacingDirection.Down);
+            //         }
 
-                    Debug.Log(
-                        $"Attack Facing: " +
-                        $"Attacker={attackerPosition}, " +
-                        $"Target={targetPosition}, " +
-                        $"Difference={difference}, " +
-                        $"Direction={facing.Direction}");
+            //         Debug.Log(
+            //             $"Attack Facing: " +
+            //             $"Attacker={attackerPosition}, " +
+            //             $"Target={targetPosition}, " +
+            //             $"Difference={difference}, " +
+            //             $"Direction={facing.Direction}");
 
                     
-                }
+            //     }
             // Debug.Log(
             //     $"XenoSteel Area Attack: " +
             //     $"Skill={_currentSkill.skillName}, " +
@@ -330,6 +334,12 @@ namespace XenoSteel.Combat
                     $"Damage={targetDamage}");
 
 
+
+                if (attackPresentation != null)
+                {
+                    await attackPresentation.PlayAttackPresentation();
+                }
+
                 await UnitReference.HumanExecuteAbility(
                     new AttackCommand(
                         target,
@@ -339,17 +349,17 @@ namespace XenoSteel.Combat
 
             }
 
-            if (facing != null)
-            {
-                facing.SetAttacking(false);
-            }
+            // if (facing != null)
+            // {
+            //     facing.SetAttacking(false);
+            // }
 
 
             // 攻撃完了後にEN消費
-            if (stats.ConsumeEN(_currentSkill.energyCost))
+            if (stats.ConsumeEN(energyCost))
             {
                 Debug.Log(
-                    $"EN consumed: {_currentSkill.energyCost}, " +
+                    $"EN consumed: {energyCost}, " +
                     $"EN after attack: {stats.EN}");
             }
         }

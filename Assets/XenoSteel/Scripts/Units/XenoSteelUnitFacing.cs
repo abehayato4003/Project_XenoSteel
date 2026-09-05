@@ -45,12 +45,14 @@ namespace XenoSteel.Units
             Vector3 currentPosition = transform.position;
             Vector3 movement = currentPosition - _lastPosition;
 
+            // ★ 攻撃中は movement を完全に無視する
             if (_isAttacking)
             {
                 _lastPosition = currentPosition;
                 return;
             }
 
+            // ★ 攻撃終了後の揺れを無視する（アニメーションの戻り対策）
             if (_attackEndIgnoreFrames > 0)
             {
                 _attackEndIgnoreFrames--;
@@ -58,7 +60,8 @@ namespace XenoSteel.Units
                 return;
             }
 
-            if (movement.sqrMagnitude > 0.0001f)
+            // ★ 移動時のみ方向を変える（movement が十分大きい時）
+            if (movement.sqrMagnitude > 0.01f)
             {
                 if (Mathf.Abs(movement.x) >= Mathf.Abs(movement.z))
                 {
@@ -78,6 +81,7 @@ namespace XenoSteel.Units
 
             _lastPosition = currentPosition;
         }
+
 
         public void SetAttacking(bool attacking)
         {

@@ -558,6 +558,102 @@ TBSF標準の `AttackCommand` は攻撃実行部分としてそのまま利用�
 * [ ] ステータスUIの整備
 * [ ] 技使用時に最低限の演出を再生（Timeline の簡易版）
 
+## 戦闘演出の方針
+
+Sprint 4では、攻撃演出を後から拡張できる基本的な仕組みを構築し、
+演出自体は最低限に留める。
+
+* 通常技・モブ機体
+  * マップ上で簡易攻撃モーション・エフェクトを再生
+  * 戦闘テンポを優先し、専用戦闘画面へは切り替えない
+
+* 主人公機・ボス機体などの主要ユニット
+  * 将来的に専用の戦闘演出へ拡張可能な構造とする
+
+* 必殺技・主要な専用技
+  * 将来的に画面切り替えを伴う専用3Dアニメーション・Timeline演出へ拡張する
+  * 必要に応じてカットインを挿入する
+
+* Sprint 7
+  * Sprint 4で構築した演出基盤を利用して、ユニット・技ごとの演出を強化する
+  * カットイン、専用Timeline、専用アニメーションなどを追加する
+
+---
+## Sprint 4で作成・変更したクラス・データ
+
+### `XenoSteelDamagePopup.cs`
+
+* 戦闘時に与えたダメージを画面上に数値として表示するUIコンポーネント
+* TextMeshProを使用してダメージ値を表示
+* 表示中は上方向へ移動
+* 一定時間経過後に自動で破棄
+* `Initialize(int damage)` によって表示するダメージ値を設定する
+
+### `XenoSteelDamagePopupReceiver.cs`
+
+* `IUnit.UnitAttacked` イベントを利用してダメージ表示を発生させる
+* `UnitAttackedEventArgs.DamageDealt` から実際のダメージ値を取得
+* 攻撃を受けたUnitのワールド座標をCanvas上の座標へ変換
+* `XenoSteelDamagePopup` のPrefabを生成してダメージ値を表示する
+* TBSF標準の攻撃処理を変更せず、イベントを利用してUIを追加する
+
+### `UnitAttackedEventArgs`
+
+* 攻撃を受けたUnit、攻撃したUnit、与えたダメージを保持するイベントデータ
+* `AffectedUnit`
+  * 攻撃を受けたUnit
+* `AttackingUnit`
+  * 攻撃したUnit
+* `DamageDealt`
+  * 実際に与えたダメージ
+* `XenoSteelDamagePopupReceiver` がダメージポップアップを表示する際に使用する
+
+### `XenoSteelAttackPresentation.cs`
+
+* Unitごとの攻撃演出を管理するXenoSteel独自コンポーネント
+* UnitのGameObjectに追加して使用する
+* 攻撃演出方式を切り替えられる構造を追加
+  * `SimpleMotion`
+    * Visual Rootを攻撃方向へ短時間移動させて戻す簡易攻撃演出
+  * `Animator`
+    * Unity Animatorを使用した攻撃アニメーション
+* `XenoSteelUnitFacing` からUnitの現在の向きを取得し、SimpleMotionの移動方向を決定する
+* 攻撃時にTargetへ向きを変更せず、現在のFacing方向を維持する
+* 通常のUnitはSimpleMotion、専用モーションを持つUnitはAnimatorを使用できる構造とする
+* PlayerUnitでSimpleMotion、アスターでAnimatorによる攻撃モーションの動作を確認
+* 将来的にTimelineなどのより大規模な戦闘演出へ拡張するための入口として使用する
+
+### `XenoSteelCombatPresentationData.cs`
+
+* 戦闘演出に使用するデータをScriptableObjectとして保持する
+* 攻撃アニメーション用の`AnimationClip`を設定可能
+* 攻撃エフェクト用のPrefabを設定可能
+* 将来的にUnitやSkillごとの戦闘演出データを管理するための基盤として使用する
+* 現時点では基本的な攻撃演出システムへの接続は未実装
+
+### `XenoSteelUnitFacing.cs`（Sprint 4調整）
+
+* Unitの移動方向に応じてFacingを変更する処理を継続使用
+* 攻撃時に攻撃対象の方向へ自動的に向かないよう調整
+* 攻撃演出による一時的なTransform移動を移動方向変更として扱わないよう調整
+* `movement.sqrMagnitude` の判定値を `0.0001f` から `0.01f` に変更
+* 微小なTransform移動によって大量の`SetDirection`が発生する問題を抑制
+* 攻撃演出とFacing処理が干渉しないよう調整
+
+### `XenoSteelAttackAbility.cs`（Sprint 4調整）
+
+* 攻撃実行時に`XenoSteelAttackPresentation`を呼び出す処理を追加
+* Playerによる攻撃時に攻撃演出を再生してから`AttackCommand`を実行する構造に変更
+* 攻撃演出追加後、`await`を挟んでも使用SkillのEN消費量を保持できるよう、SkillのEN消費量をローカル変数へ保存
+* `XenoSteelUnitStats.ConsumeEN()` によって攻撃後のEN消費を継続して実行
+* TBSF標準の`AttackCommand`は変更せず、XenoSteel側から演出を追加する
+
+### `XenoSteelInitiative.cs`
+
+* `XenoUnitData`から生成した`XenoSteelUnitStats`を保持する構造を継続使用
+* `Stats`を通して現在のHP / EN / Attack / Armor / Mobilityなどの最終ステータスを取得する
+* Sprint 4の攻撃処理でも`Stats`を参照してEN消費を行う
+* `XenoUnitData`が設定されている場合、`Awake()`で`XenoSteelUnitStats`を生成する
 ---
 
 # Sprint 5：AI拡張（行動選択）
