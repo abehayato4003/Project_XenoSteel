@@ -19,8 +19,15 @@ namespace TurnBasedStrategyFramework.Unity.Units.Abilities
         public override async Task MovementAnimation(IEnumerable<ICell> path, ICell destination)
         {
             var currentCell = _unitReference.CurrentCell;
+            var facing = (_unitReference as Component)?.GetComponent<IUnitFacing>();
             foreach (var cell in path)
             {
+                var direction =
+                    cell.WorldPosition.ToVector3()
+                    - currentCell.WorldPosition.ToVector3();
+
+                facing?.SetFacing(direction.x, direction.z);
+
                 _unitReference.InvokeUnitLeftCell(new UnitChangedGridPositionEventArgs(_unitReference, currentCell, cell));
                 while (!_unitReference.WorldPosition.Equals(cell.WorldPosition))
                 {
