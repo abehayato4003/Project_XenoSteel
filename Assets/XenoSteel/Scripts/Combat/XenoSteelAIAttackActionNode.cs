@@ -33,7 +33,7 @@ namespace XenoSteel.AI
         {
             if (_unit.ActionPoints <= 0)
             {
-                return Task.FromResult(false);
+                return false;
             }
 
             var unit =
@@ -41,7 +41,7 @@ namespace XenoSteel.AI
 
             if (unit == null)
             {
-                return Task.FromResult(false);
+                return false;
             }
 
             var initiative =
@@ -53,7 +53,7 @@ namespace XenoSteel.AI
                 initiative.UnitData.skills.Length == 0 ||
                 initiative.Stats == null)
             {
-                return Task.FromResult(false);
+                return false;
             }
 
             var attackAbility =
@@ -61,7 +61,7 @@ namespace XenoSteel.AI
 
             if (attackAbility == null)
             {
-                return Task.FromResult(false);
+                return false;
             }
 
             var enemyUnits = _gridController.UnitManager
@@ -140,7 +140,7 @@ namespace XenoSteel.AI
             // 使用可能なSkillがなければ攻撃しない
             if (bestSkill == null || bestTarget == null)
             {
-                return Task.FromResult(false);
+                return false;
             }
 
             // 選択したSkillを設定
@@ -153,6 +153,16 @@ namespace XenoSteel.AI
                 $"Damage={bestDamage}"
             );
 
+            var attackPresentation =
+                unit.GetComponent<XenoSteelAttackPresentation>();
+
+            if (attackPresentation != null)
+            {
+                await attackPresentation.PlayAttackPresentation(
+                    bestSkill.presentation
+                );
+            }
+
             var tcs = new TaskCompletionSource<bool>();
 
             _unit.AIExecuteAbility(
@@ -162,7 +172,7 @@ namespace XenoSteel.AI
             );
 
             // 攻撃完了後にENを消費
-            return ConsumeENAfterAttack(
+            return await ConsumeENAfterAttack(
                 tcs.Task,
                 initiative.Stats,
                 bestSkill.energyCost

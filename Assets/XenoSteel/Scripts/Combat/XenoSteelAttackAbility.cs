@@ -337,7 +337,9 @@ namespace XenoSteel.Combat
 
                 if (attackPresentation != null)
                 {
-                    await attackPresentation.PlayAttackPresentation();
+                    await attackPresentation.PlayAttackPresentation(
+                        _currentSkill.presentation
+                    );
                 }
 
                 await UnitReference.HumanExecuteAbility(

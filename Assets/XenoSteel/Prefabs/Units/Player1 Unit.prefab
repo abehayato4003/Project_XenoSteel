@@ -282,12 +282,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83f76ae7b3cc5384bbd3cc7fd367cab0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  presentationType: 0
   visualRoot: {fileID: 7247276706938321102}
-  attackDistance: 0.5
-  attackDuration: 0.15
-  animator: {fileID: 0}
-  attackStateName: Aster_BeamSaber
+  animator: {fileID: 3635340656420364980}
 --- !u!1 &1475985202764374347
 GameObject:
   m_ObjectHideFlags: 0
@@ -842,6 +838,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ed4737008d68da745a592db3264ec977, type: 3}
+--- !u!95 &3635340656420364980 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5808797975917273947, guid: ed4737008d68da745a592db3264ec977, type: 3}
+  m_PrefabInstance: {fileID: 7129107962025869807}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &7247276706938321102 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 467479560979708193, guid: ed4737008d68da745a592db3264ec977, type: 3}

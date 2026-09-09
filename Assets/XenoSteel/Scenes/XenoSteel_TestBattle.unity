@@ -9325,6 +9325,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player1 Unit
       objectReference: {fileID: 0}
+    - target: {fileID: 3635340656420364980, guid: b764de7a9295c884d98d901ae741df01, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: 55a67c7f6bba4254990359bbe6625383, type: 2}
     - target: {fileID: 5537624217449271752, guid: b764de7a9295c884d98d901ae741df01, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0

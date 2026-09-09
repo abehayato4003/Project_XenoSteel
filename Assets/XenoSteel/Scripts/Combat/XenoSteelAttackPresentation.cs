@@ -1,63 +1,60 @@
 using System.Threading.Tasks;
-
 using UnityEngine;
-
 using XenoSteel.Units;
 
 namespace XenoSteel.Combat
 {
     public class XenoSteelAttackPresentation : MonoBehaviour
     {
-        public enum PresentationType
-        {
-            SimpleMotion,
-            Animator
-        }
-
-        [Header("演出方式")]
-        [SerializeField]
-        private PresentationType presentationType =
-            PresentationType.SimpleMotion;
-
         [Header("共通")]
         [SerializeField]
         private Transform visualRoot;
-
-        [Header("簡易モーション")]
-        [SerializeField]
-        private float attackDistance = 0.5f;
-
-        [SerializeField]
-        private float attackDuration = 0.15f;
 
         [Header("Animator")]
         [SerializeField]
         private Animator animator;
 
-        [SerializeField]
-        private string attackStateName = "Aster_BeamSaber";
-
-        public async Task PlayAttackPresentation()
+        public async Task PlayAttackPresentation(
+            XenoSteelCombatPresentationData presentation)
         {
-            switch (presentationType)
+            if (presentation == null)
             {
-                case PresentationType.SimpleMotion:
-                    await PlaySimpleMotion();
+                return;
+            }
+
+            switch (presentation.presentationType)
+            {
+                case PresentationType.None:
                     break;
 
-                case PresentationType.Animator:
-                    await PlayAnimatorMotion();
+                case PresentationType.SimpleMotion:
+                    await PlaySimpleMotion(
+                        presentation.attackDistance,
+                        presentation.attackDuration
+                    );
+                    break;
+
+                case PresentationType.NormalMotion:
+                    await PlayAnimatorMotion(
+                        presentation.animatorTriggerName,
+                        presentation.attackAnimation
+                    );
+                    break;
+
+                case PresentationType.Special:
+                    // 特別演出は後で実装
                     break;
             }
         }
 
-        private async Task PlaySimpleMotion()
+        private async Task PlaySimpleMotion(
+            float attackDistance,
+            float attackDuration)
         {
             if (visualRoot == null)
             {
                 Debug.LogWarning(
                     $"Visual Root is not assigned on {gameObject.name}.");
-
                 return;
             }
 
@@ -68,7 +65,6 @@ namespace XenoSteel.Combat
             {
                 Debug.LogWarning(
                     $"XenoSteelUnitFacing is not found on {gameObject.name}.");
-
                 return;
             }
 
@@ -76,16 +72,12 @@ namespace XenoSteel.Combat
             {
                 XenoSteelUnitFacing.FacingDirection.Up
                     => Vector3.forward,
-
                 XenoSteelUnitFacing.FacingDirection.Down
                     => Vector3.back,
-
                 XenoSteelUnitFacing.FacingDirection.Right
                     => Vector3.right,
-
                 XenoSteelUnitFacing.FacingDirection.Left
                     => Vector3.left,
-
                 _ => Vector3.forward
             };
 
@@ -100,7 +92,6 @@ namespace XenoSteel.Combat
 
             float timer = 0f;
 
-            // 前進
             while (timer < halfDuration)
             {
                 timer += Time.deltaTime;
@@ -119,7 +110,6 @@ namespace XenoSteel.Combat
 
             timer = 0f;
 
-            // 後退
             while (timer < halfDuration)
             {
                 timer += Time.deltaTime;
@@ -136,26 +126,57 @@ namespace XenoSteel.Combat
                 await Task.Yield();
             }
 
-            visualRoot.localPosition =
-                startPosition;
+            visualRoot.localPosition = startPosition;
         }
 
-        private async Task PlayAnimatorMotion()
+        private async Task PlayAnimatorMotion(
+            string triggerName,
+            AnimationClip attackAnimation)
         {
             if (animator == null)
             {
                 Debug.LogWarning(
-                    $"Animator is not assigned on {gameObject.name}.");
-
+                    $"XenoSteelAttackPresentation: Animatorが設定されていません。" +
+                    $" Unit={gameObject.name}"
+                );
                 return;
             }
 
-            animator.Play(
-                attackStateName,
-                0,
-                0f);
+            if (string.IsNullOrEmpty(triggerName))
+            {
+                Debug.LogWarning(
+                    $"XenoSteelAttackPresentation: Animator Triggerが設定されていません。" +
+                    $" Unit={gameObject.name}"
+                );
+                return;
+            }
 
-            await Task.CompletedTask;
+            if (attackAnimation == null)
+            {
+                Debug.LogWarning(
+                    $"XenoSteelAttackPresentation: Attack Animationが設定されていません。" +
+                    $" Unit={gameObject.name}"
+                );
+                return;
+            }
+            Debug.Log(
+                $"Animator Trigger発火: Unit={gameObject.name}, Trigger={triggerName}"
+            );
+            animator.SetTrigger(triggerName);
+
+            float timer = 0f;
+
+            while (timer < attackAnimation.length)
+            {
+                timer += Time.deltaTime;
+                await Task.Yield();
+            }
+        }
+        public void OnAttackTiming()
+        {
+            Debug.Log(
+                $"Attack Timing: Unit={gameObject.name}"
+            );
         }
     }
 }

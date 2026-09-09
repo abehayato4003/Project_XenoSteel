@@ -37,6 +37,9 @@ namespace XenoSteel.Combat
 
         [Header("使用条件")]
         public bool requiresTarget = true;
+
+        [Header("戦闘演出")]
+        public XenoSteelCombatPresentationData presentation;
     }
 
     public enum SkillAttackShape

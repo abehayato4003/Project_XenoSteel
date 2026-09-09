@@ -23,5 +23,5 @@ MonoBehaviour:
   size: 0
   pilot: {fileID: 11400000, guid: 3d875b9f0818bd54594433d84c0d53d5, type: 2}
   skills:
-  - {fileID: 11400000, guid: d51c988b5f3e71947991c58232042237, type: 2}
+  - {fileID: 11400000, guid: d6d91781a1ae86c4e833ee1d982eb0c0, type: 2}
   - {fileID: 11400000, guid: eb6fef5c38bc868459625a527e3f2068, type: 2}

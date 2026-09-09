@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54a4924995947ce4a9ce5f9ecc0815af, type: 3}
-  m_Name: Skill_TestMelee
+  m_Name: Aster_BeamSaber
   m_EditorClassIdentifier: 
-  skillName: TestMelee
-  range: 1
+  skillName: BeamSaber
+  range: 2
   power: 100
-  energyCost: 50
+  energyCost: 40
   area: 0
-  attackShape: 0
+  attackShape: 1
   attackWidth: 1
   areaDamageMultiplier: 0.5
-  attribute: Phisical
+  attribute: 
   requiresTarget: 1
-  presentation: {fileID: 11400000, guid: 793d5d708d749114e837cbe4ef74578f, type: 2}
+  presentation: {fileID: 11400000, guid: cd84b6568ce3ee849ba3d8829d1d9868, type: 2}
