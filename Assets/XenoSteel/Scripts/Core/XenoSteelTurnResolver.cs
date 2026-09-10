@@ -8,6 +8,10 @@ using TurnBasedStrategyFramework.Unity.Controllers;
 using TurnBasedStrategyFramework.Unity.Units;
 using UnityEngine;
 
+using XenoSteel.Units;
+using XenoSteel.Combat.UI;
+
+
 namespace XenoSteel.Core
 {
     /// <summary>
@@ -19,31 +23,57 @@ namespace XenoSteel.Core
         private List<IUnit> _turnOrder = new List<IUnit>();
         private int _currentIndex = 0;
 
+        public IReadOnlyList<IUnit> TurnOrder => _turnOrder;
+        public int CurrentIndex => _currentIndex;
+
         private int _currentRound = 1;
         public int CurrentRound => _currentRound;
 
         public override TurnContext ResolveStart(GridController gridController)
         {
+
             _currentRound = 1;
 
             CreateTurnOrder(gridController);
 
             _currentIndex = 0;
 
+            UpdateTurnOrderUI();
+
             return CreateTurnContext(gridController);
         }
 
         public override TurnContext ResolveTurn(GridController gridController)
         {
+            Debug.Log(
+                $"ResolveTurn: Index={_currentIndex}, Count={_turnOrder.Count}"
+            );
             _currentIndex++;
-            
+
+            // 現ラウンドの全ユニットが行動終了
             if (_currentIndex >= _turnOrder.Count)
             {
                 _currentRound++;
 
+                // 新しいラウンドの行動順を作り直す
                 CreateTurnOrder(gridController);
+
+                // 新ラウンドの先頭ユニット
                 _currentIndex = 0;
+
+                Debug.Log(
+                    $"New Round: {_currentRound}, " +
+                    $"TurnOrder Count: {_turnOrder.Count}"
+                );
             }
+
+            Debug.Log(
+                $"Update TurnOrder: Round={_currentRound}, " +
+                $"Index={_currentIndex}, " +
+                $"Count={_turnOrder.Count}"
+            );
+
+            UpdateTurnOrderUI();
 
             return CreateTurnContext(gridController);
         }
@@ -58,13 +88,39 @@ namespace XenoSteel.Core
                 .ThenBy(unit => unit.UnitID)
                 .ToList();
                 
+            //UpdateTurnOrderUI();
                 
+        }
+
+        private void UpdateTurnOrderUI()
+        {
+            XenoSteelTurnOrderUI ui =
+                Object.FindFirstObjectByType<XenoSteelTurnOrderUI>();
+
+            Debug.Log(
+                $"TurnOrderUI found: {ui != null}"
+            );
+
+            if (ui != null)
+            {
+                ui.SetTurnOrder(
+                    _turnOrder,
+                    _currentIndex);
+            }
         }
 
 
         private TurnContext CreateTurnContext(GridController gridController)
         {
             IUnit unit = _turnOrder[_currentIndex];
+
+            XenoUnitStatusUI statusUI =
+                Object.FindFirstObjectByType<XenoUnitStatusUI>();
+
+            if (statusUI != null)
+            {
+                statusUI.SetCurrentUnit(unit);
+            }
 
             var player = gridController.PlayerManager
                 .GetPlayers()
