@@ -625,20 +625,70 @@ Sprint 4では、攻撃演出を後から拡張できる基本的な仕組みを
 
 ### `XenoSteelCombatPresentationData.cs`
 
-* 戦闘演出に使用するデータをScriptableObjectとして保持する
+** Skillごとの戦闘演出設定をScriptableObjectとして保持する
+* `PresentationType` によって演出方式を指定する
+  * `None`
+  * `SimpleMotion`
+  * `NormalMotion`
+  * `Special`
+* SimpleMotion用の攻撃距離・攻撃時間を設定可能
+* Animator用のTrigger名を設定可能
 * 攻撃アニメーション用の`AnimationClip`を設定可能
 * 攻撃エフェクト用のPrefabを設定可能
-* 将来的にUnitやSkillごとの戦闘演出データを管理するための基盤として使用する
-* 現時点では基本的な攻撃演出システムへの接続は未実装
+* `SkillData.presentation` からSkillごとの演出データを参照する
 
 ### `XenoSteelUnitFacing.cs`（Sprint 4調整）
 
 * Unitの移動方向に応じてFacingを変更する処理を継続使用
 * 攻撃時に攻撃対象の方向へ自動的に向かないよう調整
-* 攻撃演出による一時的なTransform移動を移動方向変更として扱わないよう調整
-* `movement.sqrMagnitude` の判定値を `0.0001f` から `0.01f` に変更
-* 微小なTransform移動によって大量の`SetDirection`が発生する問題を抑制
-* 攻撃演出とFacing処理が干渉しないよう調整
+* `SimpleMotion` による攻撃演出では、現在のFacing方向を攻撃方向として使用
+* TBSFの移動処理からFacingを変更できるよう`IUnitFacing`を実装
+* 攻撃演出による一時的なTransform移動ではFacingを変更しない
+
+### `IUnitFacing.cs`
+
+* TBSFの移動処理とXenoSteel独自のFacing処理を接続するインターフェース
+* `SetFacing(float x, float z)` によって移動方向をXenoSteel側へ通知する
+* TBSF側からXenoSteel固有クラスへ直接依存しない構造にするために使用する
+
+### `XenoUnitStatusUI.cs`
+
+* 現在行動中のUnitのステータスを表示する戦闘HUD
+* 機体名を表示
+* パイロット名を表示
+* HPを現在値 / 最大値で表示
+* HPゲージをSliderで表示
+* ENを現在値 / 最大値で表示
+* ENゲージをSliderで表示
+* ATKを表示
+* DEFを表示
+* `XenoSteelInitiative` から`XenoUnitData`と`XenoSteelUnitStats`を取得して表示する
+* `XenoSteelTurnResolver`から現在行動中のUnitを受け取って表示を更新する
+
+### `XenoSteelTurnOrderUI.cs`
+
+* 現在行動中のUnitを除いた次の行動順を表示する戦闘HUD
+* 最大4機の次に行動するUnitを表示
+* `XenoSteelTurnResolver` の現在の行動順とインデックスを使用して表示する
+* 現在のラウンド内で残っているUnitのみを表示する
+* ラウンドをまたいで行動順をループさせず、現在ラウンド終了時には表示数が減少する
+* 新しいラウンド開始時に新しい行動順を取得して再表示する
+* `SlotPrefab`を必要な数だけ生成して表示する
+
+### `XenoSteelTurnResolver.cs`
+
+* `XenoSteelTurnOrderUI`へ現在の行動順を渡す処理を追加
+* `TurnOrder` と `CurrentIndex` を公開し、戦闘UIから現在の行動順を参照できるようにする
+* ラウンド開始時にTurnOrderUIを更新する
+* ターン進行時にTurnOrderUIを更新する
+* 全ユニットの行動終了時に新しいラウンドの行動順を作成し、TurnOrderUIを再更新する
+* `XenoUnitStatusUI`へ現在行動中のUnitを渡す処理を継続使用する
+
+### `SkillData.cs`
+
+* Skillごとの戦闘演出データを参照する`presentation`を追加
+* `XenoSteelCombatPresentationData`を設定することで、Skillごとに攻撃演出方式を指定できる
+
 
 ### `XenoSteelAttackAbility.cs`（Sprint 4調整）
 
@@ -654,6 +704,11 @@ Sprint 4では、攻撃演出を後から拡張できる基本的な仕組みを
 * `Stats`を通して現在のHP / EN / Attack / Armor / Mobilityなどの最終ステータスを取得する
 * Sprint 4の攻撃処理でも`Stats`を参照してEN消費を行う
 * `XenoUnitData`が設定されている場合、`Awake()`で`XenoSteelUnitStats`を生成する
+
+### `XenoSteelAIAttackActionNode.cs`
+
+* EnemyのSkill攻撃時にも`XenoSteelAttackPresentation`を使用する
+* PlayerとEnemyで共通の攻撃演出システムを利用する
 ---
 
 # Sprint 5：AI拡張（行動選択）
