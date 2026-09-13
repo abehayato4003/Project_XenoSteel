@@ -171,33 +171,27 @@ namespace XenoSteel.AI
                 tcs
             );
 
-            // 攻撃完了後にENを消費
-            return await ConsumeENAfterAttack(
-                tcs.Task,
-                initiative.Stats,
-                bestSkill.energyCost
-            );
-        }
+            // 攻撃完了を待つ
+            bool result = await tcs.Task;
 
-        private async Task<bool> ConsumeENAfterAttack(
-            Task<bool> attackTask,
-            XenoSteelUnitStats stats,
-            int energyCost)
-        {
-            bool result = await attackTask;
+            // 攻撃対象の赤ハイライトを解除
+            attackAbility.CleanUp(_gridController);
 
+            // 攻撃成功時にENを消費
             if (result)
             {
-                if (stats.ConsumeEN(energyCost))
+                if (initiative.Stats.ConsumeEN(bestSkill.energyCost))
                 {
                     UnityEngine.Debug.Log(
-                        $"AI EN consumed: {energyCost}, " +
-                        $"EN after attack: {stats.EN}"
+                        $"AI EN consumed: {bestSkill.energyCost}, " +
+                        $"EN after attack: {initiative.Stats.EN}"
                     );
                 }
             }
 
             return result;
         }
+
+        
     }
 }
