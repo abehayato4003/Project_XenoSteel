@@ -554,8 +554,8 @@ TBSF標準の `AttackCommand` は攻撃実行部分としてそのまま利用�
 ## 実装項目
 
 * [x] ダメージポップアップ
-* [ ] 攻撃アニメーション（簡易）
-* [ ] ステータスUIの整備
+* [x] 撃アニメーション（簡易）
+* [x] ステータスUIの整備
 * [ ] 技使用時に最低限の演出を再生（Timeline の簡易版）
 
 ## 戦闘演出の方針
@@ -689,6 +689,58 @@ Sprint 4では、攻撃演出を後から拡張できる基本的な仕組みを
 * Skillごとの戦闘演出データを参照する`presentation`を追加
 * `XenoSteelCombatPresentationData`を設定することで、Skillごとに攻撃演出方式を指定できる
 
+### `XenoSteelUnitInfoUI.cs`
+
+* マップ上でカーソルをUnitに合わせた際、そのUnitの情報を表示するUI
+* 現在行動中のUnitは表示対象から除外する
+* Player / Enemyを問わず、現在行動中ではないUnitを表示対象とする
+* 以下の情報を表示
+
+  * 機体名
+  * HP
+  * EN
+  * Armor
+* Unitのワールド座標を画面座標へ変換し、対象Unitの近くに情報パネルを表示
+* `CanvasGroup` を使用して表示・非表示を切り替える
+* UI自身の入力を妨げないよう、情報パネルは `interactable = false` / `blocksRaycasts = false` とする
+* TBSFのUnit Highlightイベントを利用して表示対象を切り替える
+* `XenoSteelTurnResolver` から現在行動中のUnitを受け取り、表示対象から除外する
+
+### `XenoSteelSkillSelectionUI.cs`
+
+* Playerの現在行動中Unitが使用できるSkill一覧を表示するUI
+* `XenoUnitData.skills[]` から現在のUnitが習得しているSkillを取得して表示
+* SkillごとにSkillSlotを生成する構造とする
+* SkillSlotには以下を表示
+
+  * Skill名
+  * DetailButton
+* SkillSlot本体を押すことで、そのSkillを `XenoSteelAttackAbility` の使用Skillとして設定する
+* Skill一覧をScroll ViewのContentへ生成し、複数Skillを縦方向にスクロールして表示できる構造とする
+* Playerのターン中はSkill一覧を継続して表示する
+* EnemyのターンではSkill一覧を非表示にする
+* `SetCurrentUnit()` によって現在行動中のUnitが切り替わった際、そのUnitのSkill一覧へ更新する
+* Skillの詳細表示は `XenoSteelSkillDetailUI` に委譲する
+* `XenoSteelAttackAbility.OnAbilitySelected()` からSkill一覧を再生成せず、現在表示しているSkill一覧をそのまま使用する
+* `CanvasGroup` を使用してSkill一覧の表示・非表示とUI入力状態を管理する
+
+### `XenoSteelSkillDetailUI.cs`
+
+* 選択したSkillの詳細情報を表示するUI
+* SkillListの各SkillSlotにあるDetailButtonから表示する
+* 以下のSkill情報を表示
+
+  * Skill名
+  * 威力
+  * 射程
+  * EN消費
+  * 属性
+  * 範囲
+* `SkillData` の値を直接参照して表示内容を更新する
+* SkillListとは独立した詳細パネルとして配置する
+* `CanvasGroup` を使用して表示・非表示を切り替える
+* 表示中はUI操作を受け付け、非表示時は `interactable = false` / `blocksRaycasts = false` とする
+* CloseButtonから詳細パネルを閉じる
 
 ### `XenoSteelAttackAbility.cs`（Sprint 4調整）
 

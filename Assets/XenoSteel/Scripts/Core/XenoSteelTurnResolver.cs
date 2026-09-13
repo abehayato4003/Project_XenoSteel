@@ -31,6 +31,7 @@ namespace XenoSteel.Core
 
         public override TurnContext ResolveStart(GridController gridController)
         {
+            Debug.Log("XenoSteelTurnResolver.ResolveStart");
 
             _currentRound = 1;
 
@@ -97,9 +98,6 @@ namespace XenoSteel.Core
             XenoSteelTurnOrderUI ui =
                 Object.FindFirstObjectByType<XenoSteelTurnOrderUI>();
 
-            Debug.Log(
-                $"TurnOrderUI found: {ui != null}"
-            );
 
             if (ui != null)
             {
@@ -112,6 +110,7 @@ namespace XenoSteel.Core
 
         private TurnContext CreateTurnContext(GridController gridController)
         {
+            
             IUnit unit = _turnOrder[_currentIndex];
 
             XenoUnitStatusUI statusUI =
@@ -125,6 +124,37 @@ namespace XenoSteel.Core
             var player = gridController.PlayerManager
                 .GetPlayers()
                 .FirstOrDefault(p => p.PlayerNumber == unit.PlayerNumber);
+
+            XenoSteelSkillSelectionUI skillSelectionUI =
+                Object.FindFirstObjectByType<XenoSteelSkillSelectionUI>();
+
+            if (skillSelectionUI != null)
+            {
+                skillSelectionUI.SetCurrentUnit(
+                    unit,
+                    player != null && player.PlayerNumber == 0
+                );
+            }
+
+            XenoSteelEndTurnUI endTurnUI =
+                Object.FindFirstObjectByType<XenoSteelEndTurnUI>();
+
+            if (endTurnUI != null)
+            {
+                endTurnUI.SetCurrentUnit(
+                    unit as TurnBasedStrategyFramework.Unity.Units.Unit
+                );
+            }
+
+            XenoSteelUnitInfoUI infoUI =
+                Object.FindFirstObjectByType<XenoSteelUnitInfoUI>();
+
+            if (infoUI != null)
+            {
+                infoUI.SetCurrentTurnUnit(unit);
+            }
+
+            
 
             Debug.Log(
                 "Current Unit: " + unit.UnitID +

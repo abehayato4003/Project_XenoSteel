@@ -37,16 +37,14 @@ namespace XenoSteel.Combat
         public override void OnAbilitySelected(IGridController gridController)
         {
             _gridController = gridController;
+
+            if (_attackableUnits != null)
+            {
+                _gridController.UnitManager.UnMark(_attackableUnits);
+            }
+
             _currentSkill = null;
             _attackableUnits = null;
-
-            var skillSelectionUI =
-                FindFirstObjectByType<XenoSteelSkillSelectionUI>();
-
-            if (skillSelectionUI != null)
-            {
-                skillSelectionUI.Show(this);
-            }
         }
 
         public void SetCurrentSkill(SkillData skill)
@@ -88,14 +86,6 @@ namespace XenoSteel.Combat
             if (_attackableUnits != null)
             {
                 gridController.UnitManager.UnMark(_attackableUnits);
-            }
-
-            var skillSelectionUI =
-                FindFirstObjectByType<XenoSteelSkillSelectionUI>();
-
-            if (skillSelectionUI != null)
-            {
-                skillSelectionUI.Hide();
             }
         }
 
