@@ -10,7 +10,7 @@ namespace TurnBasedStrategyFramework.Unity.Highlighters
     {
         [SerializeField] private Renderer _renderer;
         [SerializeField] private Color _color;
-        [SerializeField] private string _propertyName = "_Color"; // The default value for the Standard shader in the Built-in Renderer Pipeline. For the default Standart-Lit shader in the Universal Renderer Pipeline, the value is `_BaseColor`. 
+        [SerializeField] private string _propertyName = "_BaseColor"; // The default value for the Standard shader in the Built-in Renderer Pipeline. For the default Standart-Lit shader in the Universal Renderer Pipeline, the value is `_BaseColor`. 
         [SerializeField] private int _materialIndex = 0;
 
         private MaterialPropertyBlock _mpb;

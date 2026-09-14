@@ -328,4 +328,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _panel: {fileID: 2842430457634453379}
-  _statusText: {fileID: 471826916000133182}
+  _unitNameText: {fileID: 0}
+  _pilotNameText: {fileID: 0}
+  _hpText: {fileID: 0}
+  _enText: {fileID: 0}
+  _hpBar: {fileID: 0}
+  _enBar: {fileID: 0}
+  _attackText: {fileID: 0}
+  _defenseText: {fileID: 0}
+  _unitIcon: {fileID: 0}

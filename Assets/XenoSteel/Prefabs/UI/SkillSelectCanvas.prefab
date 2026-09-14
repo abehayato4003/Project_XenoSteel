@@ -218,4 +218,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   panel: {fileID: 5906775064676376461}
-  buttonPrefab: {fileID: 3039762858397835982, guid: a50103e878ad9ab41a9df663884ff472, type: 3}
+  content: {fileID: 0}
+  slotPrefab: {fileID: 0}
+  canvasGroup: {fileID: 0}
+  skillDetailUI: {fileID: 0}

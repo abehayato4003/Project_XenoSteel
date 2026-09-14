@@ -46,7 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _renderer: {fileID: 180408870440462851}
   _color: {r: 1, g: 1, b: 1, a: 1}
-  _propertyName: _Color
+  _propertyName: _BaseColor
   _materialIndex: 0
 --- !u!1 &6112687393374863671
 GameObject:
@@ -146,10 +146,11 @@ MeshRenderer:
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -216,7 +217,7 @@ MonoBehaviour:
   - {fileID: 358067921766324998}
   _movementCost: 1
   _currentUnits: []
-  _cellDimensions: {x: 1, y: 1, z: 1}
+  <CellDimensions>k__BackingField: {x: 1, y: 1, z: 1}
 --- !u!1 &8602044971104424296
 GameObject:
   m_ObjectHideFlags: 0
@@ -263,7 +264,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _renderer: {fileID: 180408870440462851}
   _color: {r: 0.26842916, g: 1, b: 0, a: 1}
-  _propertyName: _Color
+  _propertyName: _BaseColor
   _materialIndex: 0
 --- !u!1 &8615941600500635020
 GameObject:
@@ -311,7 +312,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _renderer: {fileID: 180408870440462851}
   _color: {r: 1, g: 0.94259137, b: 0, a: 1}
-  _propertyName: _Color
+  _propertyName: _BaseColor
   _materialIndex: 0
 --- !u!1 &9147298477512039586
 GameObject:
@@ -359,5 +360,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _renderer: {fileID: 180408870440462851}
   _color: {r: 0.03947287, g: 0, b: 0.990566, a: 1}
-  _propertyName: _Color
+  _propertyName: _BaseColor
   _materialIndex: 0
