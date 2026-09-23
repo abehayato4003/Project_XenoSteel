@@ -15,11 +15,15 @@ namespace XenoSteel.Information
         public void SetRecognitionPending(
             object enemy,
             Vector3 position,
-            int round)
+            int round,
+            int turnIndex)
         {
             if (_enemyInformations.TryGetValue(enemy, out var information))
             {
-                information.SetRecognitionPending(round);
+                information.SetRecognitionPending(
+                    round,
+                    turnIndex
+                );
                 return;
             }
 
@@ -30,6 +34,11 @@ namespace XenoSteel.Information
                     XenoSteelInformationSource.None,
                     position,
                     round));
+
+            _enemyInformations[enemy].SetRecognitionPending(
+                round,
+                turnIndex
+            );
         }
 
         public void ConfirmEnemy(
@@ -63,6 +72,24 @@ namespace XenoSteel.Information
         public IReadOnlyDictionary<object, XenoSteelEnemyInformation> GetAllInformations()
         {
             return _enemyInformations;
+        }
+
+        public void ConfirmPendingEnemy(
+            object enemy,
+            Vector3 position,
+            int round)
+        {
+            if (!_enemyInformations.TryGetValue(enemy, out var information))
+                return;
+
+            if (information.State != XenoSteelEnemyInformationState.RecognitionPending)
+                return;
+
+            information.UpdateInformation(
+                XenoSteelInformationSource.Visual,
+                position,
+                round
+            );
         }
     }
 }

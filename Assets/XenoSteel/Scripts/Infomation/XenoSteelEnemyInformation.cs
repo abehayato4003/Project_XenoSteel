@@ -18,6 +18,10 @@ namespace XenoSteel.Information
 
         public int LastUpdatedRound { get; private set; }
 
+        public int RecognitionPendingRound { get; private set; }
+
+        public int RecognitionPendingTurnIndex { get; private set; }
+
         public XenoSteelEnemyInformation(
             XenoSteelEnemyInformationState state,
             XenoSteelInformationSource source,
@@ -41,10 +45,13 @@ namespace XenoSteel.Information
             LastUpdatedRound = round;
         }
 
-        public void SetRecognitionPending(int round)
+        public void SetRecognitionPending(
+            int round,
+            int turnIndex)
         {
             State = XenoSteelEnemyInformationState.RecognitionPending;
-            LastUpdatedRound = round;
+            RecognitionPendingRound = round;
+            RecognitionPendingTurnIndex = turnIndex;
         }
     }
 }

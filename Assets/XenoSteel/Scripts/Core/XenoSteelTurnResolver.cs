@@ -10,6 +10,7 @@ using UnityEngine;
 
 using XenoSteel.Units;
 using XenoSteel.Combat.UI;
+using XenoSteel.Information;
 
 
 namespace XenoSteel.Core
@@ -46,9 +47,18 @@ namespace XenoSteel.Core
 
         public override TurnContext ResolveTurn(GridController gridController)
         {
-            Debug.Log(
-                $"ResolveTurn: Index={_currentIndex}, Count={_turnOrder.Count}"
-            );
+             Debug.Log($"ResolveTurn: Index={_currentIndex}, Count={_turnOrder.Count}");
+
+            IUnit endingUnit = null;
+
+            if (_currentIndex >= 0 &&
+                _currentIndex < _turnOrder.Count)
+            {
+                endingUnit = _turnOrder[_currentIndex];
+            }
+
+            ConfirmPendingInformation(endingUnit);
+
             _currentIndex++;
 
             // 現ラウンドの全ユニットが行動終了
@@ -166,6 +176,44 @@ namespace XenoSteel.Core
             return new TurnContext(
                 player,
                 new IUnit[] { unit }
+            );
+        }
+
+        private void ConfirmPendingInformation(IUnit endingUnit)
+        {
+            if (endingUnit == null)
+                return;
+
+            XenoSteelInformationManager informationManager =
+                Object.FindFirstObjectByType<XenoSteelInformationManager>();
+
+            if (informationManager == null)
+                return;
+
+            if (!informationManager.TryGetInformation(
+                    endingUnit,
+                    out var information))
+            {
+                return;
+            }
+
+            if (information.State !=
+                XenoSteelEnemyInformationState.RecognitionPending)
+            {
+                return;
+            }
+
+            if (endingUnit.CurrentCell == null)
+                return;
+
+            informationManager.ConfirmPendingEnemy(
+                endingUnit,
+                new Vector3(
+                    endingUnit.CurrentCell.WorldPosition.x,
+                    endingUnit.CurrentCell.WorldPosition.y,
+                    endingUnit.CurrentCell.WorldPosition.z
+                ),
+                _currentRound
             );
         }
 
