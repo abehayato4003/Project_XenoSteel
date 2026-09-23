@@ -202,67 +202,7 @@ namespace XenoSteel.Combat
                         }
                     }
                 }
-            }
-
-            // // ----------------------------------------
-            // // 選択した攻撃対象の方向を向く
-            // // ----------------------------------------
-
-            //     var facing =
-            //         attackerUnit.GetComponent<XenoSteelUnitFacing>();
-
-            //     if (facing != null)
-            //     {
-            //         facing.SetAttacking(true);
-            //     }
-
-            //     if (facing != null)
-            //     {
-            //         Vector2Int attackerPosition =
-            //             new Vector2Int(
-            //                 attackerUnit.CurrentCell.GridCoordinates.x,
-            //                 attackerUnit.CurrentCell.GridCoordinates.y);
-
-            //         Vector2Int targetPosition =
-            //             new Vector2Int(
-            //                 defenderUnit.CurrentCell.GridCoordinates.x,
-            //                 defenderUnit.CurrentCell.GridCoordinates.y);
-
-            //         Vector2Int difference =
-            //             targetPosition - attackerPosition;
-
-            //         if (Mathf.Abs(difference.x) >= Mathf.Abs(difference.y))
-            //         {
-            //             facing.SetDirection(
-            //                 difference.x >= 0
-            //                     ? XenoSteelUnitFacing.FacingDirection.Right
-            //                     : XenoSteelUnitFacing.FacingDirection.Left);
-            //         }
-            //         else
-            //         {
-            //             facing.SetDirection(
-            //                 difference.y >= 0
-            //                     ? XenoSteelUnitFacing.FacingDirection.Up
-            //                     : XenoSteelUnitFacing.FacingDirection.Down);
-            //         }
-
-            //         Debug.Log(
-            //             $"Attack Facing: " +
-            //             $"Attacker={attackerPosition}, " +
-            //             $"Target={targetPosition}, " +
-            //             $"Difference={difference}, " +
-            //             $"Direction={facing.Direction}");
-
-                    
-            //     }
-            // Debug.Log(
-            //     $"XenoSteel Area Attack: " +
-            //     $"Skill={_currentSkill.skillName}, " +
-            //     $"Range={_currentSkill.range}, " +
-            //     $"Area={_currentSkill.area}, " +
-            //     $"TargetCount={areaTargets.Count}");
-
-            
+            }            
 
             // ----------------------------------------
             // 現段階では選択した対象へ攻撃
@@ -341,10 +281,6 @@ namespace XenoSteel.Combat
 
             }
 
-            // if (facing != null)
-            // {
-            //     facing.SetAttacking(false);
-            // }
 
 
             // 攻撃完了後にEN消費

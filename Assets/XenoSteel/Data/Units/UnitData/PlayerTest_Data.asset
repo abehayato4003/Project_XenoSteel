@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PlayerTest_Data
   m_EditorClassIdentifier: 
   unitName: ASTER
-  hp: 800
+  hp: 1000
   en: 1000
   armor: 100
   mobility: 100

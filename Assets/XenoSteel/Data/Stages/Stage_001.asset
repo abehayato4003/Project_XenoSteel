@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Stage_001
   m_EditorClassIdentifier: 
   stageId: Stage_001
-  stageName: "\u7B2C\u4E00\u8A71"
+  stageName: Stage_001
   stageNumber: 1
   battleSceneName: Battle_001
   nextStageId: Stage_002

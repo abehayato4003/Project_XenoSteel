@@ -1,0 +1,68 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace XenoSteel.Information
+{
+    /// <summary>
+    /// プレイヤーが取得した敵情報を管理する。
+    /// 視認・レーダーなど、情報取得方法そのものとは分離して管理する。
+    /// </summary>
+    public class XenoSteelInformationManager : MonoBehaviour
+    {
+        private readonly Dictionary<object, XenoSteelEnemyInformation> _enemyInformations
+            = new Dictionary<object, XenoSteelEnemyInformation>();
+
+        public void SetRecognitionPending(
+            object enemy,
+            Vector3 position,
+            int round)
+        {
+            if (_enemyInformations.TryGetValue(enemy, out var information))
+            {
+                information.SetRecognitionPending(round);
+                return;
+            }
+
+            _enemyInformations.Add(
+                enemy,
+                new XenoSteelEnemyInformation(
+                    XenoSteelEnemyInformationState.RecognitionPending,
+                    XenoSteelInformationSource.None,
+                    position,
+                    round));
+        }
+
+        public void ConfirmEnemy(
+            object enemy,
+            XenoSteelInformationSource source,
+            Vector3 position,
+            int round)
+        {
+            if (_enemyInformations.TryGetValue(enemy, out var information))
+            {
+                information.UpdateInformation(source, position, round);
+                return;
+            }
+
+            _enemyInformations.Add(
+                enemy,
+                new XenoSteelEnemyInformation(
+                    XenoSteelEnemyInformationState.Confirmed,
+                    source,
+                    position,
+                    round));
+        }
+
+        public bool TryGetInformation(
+            object enemy,
+            out XenoSteelEnemyInformation information)
+        {
+            return _enemyInformations.TryGetValue(enemy, out information);
+        }
+
+        public IReadOnlyDictionary<object, XenoSteelEnemyInformation> GetAllInformations()
+        {
+            return _enemyInformations;
+        }
+    }
+}

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: EnemyTestData
   m_EditorClassIdentifier: 
   unitName: P-As
-  hp: 800
+  hp: 100
   en: 100
   armor: 100
   mobility: 50
