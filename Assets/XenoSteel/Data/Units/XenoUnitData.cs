@@ -34,4 +34,7 @@ public class XenoUnitData : ScriptableObject
 
     [Header("スキル")]
     public SkillData[] skills;
+
+    [Header("Information")]
+    public int visionRange = 5;
 }
