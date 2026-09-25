@@ -22,6 +22,8 @@ namespace XenoSteel.Information
 
         public int RecognitionPendingTurnIndex { get; private set; }
 
+        public int InformationPrecision { get; private set; }
+
         public XenoSteelEnemyInformation(
             XenoSteelEnemyInformationState state,
             XenoSteelInformationSource source,
@@ -52,6 +54,18 @@ namespace XenoSteel.Information
             State = XenoSteelEnemyInformationState.RecognitionPending;
             RecognitionPendingRound = round;
             RecognitionPendingTurnIndex = turnIndex;
+        }
+
+        public void SetRadarInformation(
+            Vector3 position,
+            int round,
+            int informationPrecision)
+        {
+            State = XenoSteelEnemyInformationState.Confirmed;
+            Source = XenoSteelInformationSource.Radar;
+            LastKnownPosition = position;
+            LastUpdatedRound = round;
+            InformationPrecision = informationPrecision;
         }
     }
 }

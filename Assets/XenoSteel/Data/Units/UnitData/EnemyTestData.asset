@@ -24,3 +24,7 @@ MonoBehaviour:
   pilot: {fileID: 11400000, guid: 539a723f675624f4696e3d4ed3cc0a20, type: 2}
   skills:
   - {fileID: 11400000, guid: eb6fef5c38bc868459625a527e3f2068, type: 2}
+  visionRange: 5
+  radarRange: 10
+  radarAccuracy: 3
+  stealth: 2

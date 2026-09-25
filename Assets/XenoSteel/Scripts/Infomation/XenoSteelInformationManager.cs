@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using TurnBasedStrategyFramework.Common.Units;
+
 namespace XenoSteel.Information
 {
     /// <summary>
@@ -89,6 +91,40 @@ namespace XenoSteel.Information
                 XenoSteelInformationSource.Visual,
                 position,
                 round
+            );
+        }
+
+        public void ConfirmRadarEnemy(
+            IUnit enemy,
+            Vector3 position,
+            int round,
+            int informationPrecision)
+        {
+            if (enemy == null)
+                return;
+
+            if (!_enemyInformations.TryGetValue(enemy, out var information))
+            {
+                information = new XenoSteelEnemyInformation(
+                XenoSteelEnemyInformationState.Confirmed,
+                XenoSteelInformationSource.Radar,
+                position,
+                round
+            );
+                _enemyInformations.Add(enemy, information);
+            }
+
+            information.SetRadarInformation(
+                position,
+                round,
+                informationPrecision
+            );
+
+            Debug.Log(
+                $"Radar Detection: " +
+                $"Enemy={enemy.UnitID}, " +
+                $"Precision={informationPrecision}, " +
+                $"Round={round}"
             );
         }
     }

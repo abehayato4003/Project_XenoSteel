@@ -25,3 +25,7 @@ MonoBehaviour:
   skills:
   - {fileID: 11400000, guid: d6d91781a1ae86c4e833ee1d982eb0c0, type: 2}
   - {fileID: 11400000, guid: eb6fef5c38bc868459625a527e3f2068, type: 2}
+  visionRange: 5
+  radarRange: 10
+  radarAccuracy: 5
+  stealth: 1

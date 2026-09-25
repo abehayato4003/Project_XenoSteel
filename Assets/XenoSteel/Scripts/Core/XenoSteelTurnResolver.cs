@@ -35,14 +35,51 @@ namespace XenoSteel.Core
             Debug.Log("XenoSteelTurnResolver.ResolveStart");
 
             _currentRound = 1;
-
             CreateTurnOrder(gridController);
-
             _currentIndex = 0;
-
             UpdateTurnOrderUI();
 
+            RunRadarScan(gridController);
+
             return CreateTurnContext(gridController);
+        }
+
+        private void RunRadarScan(GridController gridController)
+        {
+            if (_turnOrder == null ||
+                _turnOrder.Count == 0)
+            {
+                return;
+            }
+
+            XenoSteelRadarSystem radarSystem =
+                new XenoSteelRadarSystem();
+
+            XenoSteelInformationManager informationManager =
+                Object.FindFirstObjectByType<XenoSteelInformationManager>();
+
+            if (informationManager == null)
+            {
+                Debug.Log("Radar: InformationManager not found");
+                return;
+            }
+
+            foreach (IUnit unit in _turnOrder)
+            {
+                if (unit == null)
+                    continue;
+
+                Debug.Log(
+                    $"Radar Call Start: Unit={unit.UnitID}"
+                );
+
+                radarSystem.UpdateRadarInformation(
+                    unit,
+                    gridController,
+                    informationManager,
+                    _currentRound
+                );
+            }
         }
 
         public override TurnContext ResolveTurn(GridController gridController)
@@ -65,24 +102,11 @@ namespace XenoSteel.Core
             if (_currentIndex >= _turnOrder.Count)
             {
                 _currentRound++;
-
-                // 新しいラウンドの行動順を作り直す
                 CreateTurnOrder(gridController);
-
-                // 新ラウンドの先頭ユニット
                 _currentIndex = 0;
-
-                Debug.Log(
-                    $"New Round: {_currentRound}, " +
-                    $"TurnOrder Count: {_turnOrder.Count}"
-                );
             }
 
-            Debug.Log(
-                $"Update TurnOrder: Round={_currentRound}, " +
-                $"Index={_currentIndex}, " +
-                $"Count={_turnOrder.Count}"
-            );
+            RunRadarScan(gridController);
 
             UpdateTurnOrderUI();
 
@@ -141,6 +165,19 @@ namespace XenoSteel.Core
             if (skillSelectionUI != null)
             {
                 skillSelectionUI.SetCurrentUnit(
+                    unit,
+                    player != null && player.PlayerNumber == 0
+                );
+            }
+
+            XenoSteelRadarUI radarUI =
+                Object.FindFirstObjectByType<XenoSteelRadarUI>();
+
+            if (radarUI != null)
+            {
+                radarUI.SetGridController(gridController);
+
+                radarUI.SetCurrentUnit(
                     unit,
                     player != null && player.PlayerNumber == 0
                 );

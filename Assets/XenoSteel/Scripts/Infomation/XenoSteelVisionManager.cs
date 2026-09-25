@@ -10,10 +10,6 @@ using UnityEngine;
 
 namespace XenoSteel.Information
 {
-    /// <summary>
-    /// 現在行動中のUnitの視界を管理する。
-    /// 視界そのものの計算はXenoSteelVisionSystemに任せる。
-    /// </summary>
     public class XenoSteelVisionManager : MonoBehaviour
     {
         private XenoSteelVisionSystem _visionSystem;
@@ -27,9 +23,6 @@ namespace XenoSteel.Information
             _visionSystem = new XenoSteelVisionSystem();
         }
 
-        /// <summary>
-        /// 現在行動中のUnitの視界を更新する。
-        /// </summary>
         public void UpdateVision(
             GridController gridController,
             XenoSteelTurnResolver turnResolver)
@@ -86,12 +79,67 @@ namespace XenoSteel.Information
                 visionRange
             );
 
+            UpdateEnemyRecognition(
+                currentUnit,
+                turnResolver
+            );
+
             Debug.Log(
                 $"Vision Updated: " +
                 $"Unit={currentUnit.UnitID}, " +
                 $"Range={visionRange}, " +
                 $"Visible Cells={_visibleCells.Count}"
             );
+        }
+
+        private void UpdateEnemyRecognition(
+            IUnit currentUnit,
+            XenoSteelTurnResolver turnResolver)
+        {
+            XenoSteelInformationManager informationManager =
+                Object.FindFirstObjectByType<XenoSteelInformationManager>();
+
+            if (informationManager == null)
+                return;
+
+            foreach (ICell cell in _visibleCells)
+            {
+                if (cell.CurrentUnits == null)
+                    continue;
+
+                foreach (IUnit targetUnit in cell.CurrentUnits)
+                {
+                    if (targetUnit == null)
+                        continue;
+
+                    if (targetUnit.PlayerNumber == currentUnit.PlayerNumber)
+                        continue;
+
+                    if (informationManager.TryGetInformation(
+                            targetUnit,
+                            out var information))
+                    {
+                        if (information.State !=
+                            XenoSteelEnemyInformationState.Unknown)
+                        {
+                            continue;
+                        }
+                    }
+
+                    Vector3 position = new Vector3(
+                        cell.WorldPosition.x,
+                        cell.WorldPosition.y,
+                        cell.WorldPosition.z
+                    );
+
+                    informationManager.SetRecognitionPending(
+                        targetUnit,
+                        position,
+                        turnResolver.CurrentRound,
+                        turnResolver.CurrentIndex
+                    );
+                }
+            }
         }
     }
 }

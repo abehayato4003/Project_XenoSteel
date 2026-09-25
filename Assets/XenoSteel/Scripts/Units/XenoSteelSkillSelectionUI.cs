@@ -18,6 +18,7 @@ namespace XenoSteel.Units
 
         private XenoSteel.Combat.XenoSteelAttackAbility _attackAbility;
 
+
         public void Show(
             XenoSteel.Combat.XenoSteelAttackAbility attackAbility)
         {
@@ -196,6 +197,7 @@ namespace XenoSteel.Units
                 }
             }
         }
+
 
         public void Hide()
         {

@@ -37,4 +37,7 @@ public class XenoUnitData : ScriptableObject
 
     [Header("Information")]
     public int visionRange = 5;
+    public int radarRange = 0;
+    public int radarAccuracy = 0;
+    public int stealth = 0;
 }
