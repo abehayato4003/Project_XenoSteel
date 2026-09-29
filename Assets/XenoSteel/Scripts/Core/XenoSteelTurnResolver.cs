@@ -39,7 +39,23 @@ namespace XenoSteel.Core
             _currentIndex = 0;
             UpdateTurnOrderUI();
 
+            XenoSteelVisionManager visionManager =
+                Object.FindFirstObjectByType<XenoSteelVisionManager>();
+
+            if (visionManager != null)
+            {
+                visionManager.UpdateAllUnitsVision(
+                    gridController,
+                    this
+                );
+            }
+
             RunRadarScan(gridController);
+
+            if (visionManager != null)
+            {
+                visionManager.UpdateTacticalMapEnemyMarkers();
+            }
 
             return CreateTurnContext(gridController);
         }
@@ -84,21 +100,11 @@ namespace XenoSteel.Core
 
         public override TurnContext ResolveTurn(GridController gridController)
         {
-             Debug.Log($"ResolveTurn: Index={_currentIndex}, Count={_turnOrder.Count}");
-
-            IUnit endingUnit = null;
-
-            if (_currentIndex >= 0 &&
-                _currentIndex < _turnOrder.Count)
-            {
-                endingUnit = _turnOrder[_currentIndex];
-            }
-
-            ConfirmPendingInformation(endingUnit);
-
+            Debug.Log($"ResolveTurn: Index={_currentIndex}, Count={_turnOrder.Count}");
+            // 次のユニットへ
             _currentIndex++;
 
-            // 現ラウンドの全ユニットが行動終了
+            // 全ユニットが行動し終わったら次のラウンドへ
             if (_currentIndex >= _turnOrder.Count)
             {
                 _currentRound++;
@@ -106,7 +112,25 @@ namespace XenoSteel.Core
                 _currentIndex = 0;
             }
 
+            // 新しいターン開始時に、
+            // その時点で存在する全ユニットの視界を処理する
+            XenoSteelVisionManager visionManager =
+                Object.FindFirstObjectByType<XenoSteelVisionManager>();
+
+            if (visionManager != null)
+            {
+                visionManager.UpdateAllUnitsVision(
+                    gridController,
+                    this
+                );
+            }
+
             RunRadarScan(gridController);
+
+            if (visionManager != null)
+            {
+                visionManager.UpdateTacticalMapEnemyMarkers();
+            }
 
             UpdateTurnOrderUI();
 
@@ -215,45 +239,6 @@ namespace XenoSteel.Core
                 new IUnit[] { unit }
             );
         }
-
-        private void ConfirmPendingInformation(IUnit endingUnit)
-        {
-            if (endingUnit == null)
-                return;
-
-            XenoSteelInformationManager informationManager =
-                Object.FindFirstObjectByType<XenoSteelInformationManager>();
-
-            if (informationManager == null)
-                return;
-
-            if (!informationManager.TryGetInformation(
-                    endingUnit,
-                    out var information))
-            {
-                return;
-            }
-
-            if (information.State !=
-                XenoSteelEnemyInformationState.RecognitionPending)
-            {
-                return;
-            }
-
-            if (endingUnit.CurrentCell == null)
-                return;
-
-            informationManager.ConfirmPendingEnemy(
-                endingUnit,
-                new Vector3(
-                    endingUnit.CurrentCell.WorldPosition.x,
-                    endingUnit.CurrentCell.WorldPosition.y,
-                    endingUnit.CurrentCell.WorldPosition.z
-                ),
-                _currentRound
-            );
-        }
-
 
         private int GetMobility(IUnit unit)
         {

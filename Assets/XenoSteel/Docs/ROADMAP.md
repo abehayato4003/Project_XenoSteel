@@ -920,8 +920,9 @@ Sprint 4では、攻撃演出を後から拡張できる基本的な仕組みを
 
 * 味方ユニットに視界を設定できる
 * 建物などの遮蔽物によって視界が遮られる
-* 視界内に入った敵を即座には認識しない
-* 敵が視界内に入り、1ターン経過した後に視認情報を取得できる
+* プレイヤーのユニットが自身のターン中に敵を視界内へ捉えた時点で、視認情報を取得する
+* ターン開始時に全ユニットの視界を更新する
+* 行動中ユニットの移動完了時は、そのユニットの視界のみを更新する
 * 視界による情報取得と探知による情報取得を区別できる
 * 機体ごとにレーダー性能を設定できる
 * レーダーによって視界外の敵を探知できる
@@ -948,7 +949,7 @@ Sprint 4では、攻撃演出を後から拡張できる基本的な仕組みを
 
 ## Sprint 5.5-4
 
-「認識待ち → 1ターン経過 → 視認」の処理
+視界による敵情報の即時取得
 
 ## Sprint 5.5-5
 
@@ -1083,6 +1084,10 @@ detectionDifference = radarAccuracy - stealth
 視認による情報取得とは`XenoSteelInformationSource`によって区別する。
 
 #### 作成・変更したクラス
+* `XenoSteelInformationSource.cs`
+  * 情報の取得元を管理
+  * None / Visual / Radar を定義
+  * 視認情報とレーダー情報を区別するために使用
 
 * `XenoSteelRadarSystem.cs`
 
@@ -1107,20 +1112,195 @@ detectionDifference = radarAccuracy - stealth
   * ターン開始時の全ユニット自動レーダーを実行
 * `XenoSteelRadarAbility.cs`
 
-  * 現在行動中のユニットが任意のタイミングで使用する手動レーダーを担当予定
+  * ・現在行動中のユニットが任意のタイミングで使用する手動レーダーを担当
+    ・1ターン1回使用可能
+    ・使用してもターン終了しない
+    ・次のターン開始時に再使用可能
+
+* `XenoSteelEnemyInformationState.cs`
+  * 敵情報の取得状態を管理
+  * Unknown / Confirmed を定義
+
+* `XenoSteelVisionSystem.cs`
+
+  * ユニットを基準とした視界セルを取得
+  * visionRangeによる範囲判定
+  * 遮蔽物によるLine of Sight遮断を判定
+  * 遮蔽物は IsTaken = true かつ CurrentUnits.Count = 0 のセルとして扱う
+
+* `XenoSteelVisionManager.cs`
+
+  * 現在行動中のユニットの視界を管理
+  * 視界内に入った敵をRecognitionPendingとして情報管理へ渡す
+  * XenoSteelVisionSystemとXenoSteelInformationManagerを接続する
+
+* `XenoSteelRadarUI.cs`
+  * RadarPanelのRadarButtonを管理
+  * 現在行動中のPlayer Unitに対応するRadarAbilityを取得
+  * Radarボタンから手動レーダーを実行
+  * レーダー使用済みの場合はボタンを使用不可にする
+  * SkillSelectionUIとは独立したUIとして実装
 
 
 ## Sprint 5.5-6
 
 取得した敵情報の保持
+* [x] `XenoSteelEnemyInformation.cs` を作成
+  * 敵1体について取得した情報を保持
+  * `XenoSteelEnemyInformationState` で情報状態を管理
+  * `XenoSteelInformationSource` で情報取得元を管理
+  * 敵の最終確認セルを `Vector2Int` で保持
+
+* [x] `XenoSteelInformationManager.cs` を作成
+  * 敵ごとの取得情報を管理
+  * 視界による情報を保存
+  * 視界によって取得した敵情報を確定情報として管理
+  * 敵の実際の位置と、プレイヤー側が保持する敵情報を分離
+
+* [x] 視界による敵情報取得を接続
+  * `XenoSteelVisionManager` から敵情報を `InformationManager` に渡す
+  * プレイヤーのユニットが視界内で確認した敵を、その時点で視認情報として確定する
+  * 敵が存在するセルの `GridCoordinates` を `Vector2Int` として保存
+  * 視界による情報の取得元を `Visual` として管理
+
+* [x] 視界処理のタイミングを調整
+  * ターン開始時に、その時点で存在する全ユニットの視界を処理
+  * 行動中ユニットが移動を完了した際、そのユニットの視界を再処理
+  * 視界内で確認した敵は、その時点で視認情報として取得する
 
 ## Sprint 5.5-7
 
 メイン画面への視界反映
+### Sprint 5.5-7 実装記録
+
+#### メイン画面への視界反映
+
+* [x] `XenoSteelUnitVisibility.cs` を作成
+
+  * ユニットの見た目を視界状態に応じて表示・非表示にする
+  * `visualRoot` を制御してユニット本体を表示・非表示にする
+  * `highlightObject` も視界状態に合わせて表示・非表示にする
+  * `VisionLight` も視界状態に合わせて表示・非表示にする
+
+* [x] `XenoSteelVisionLight.cs` を作成
+
+  * Unityの `Light` コンポーネントを使用して視界を光として表現する
+  * `XenoUnitData.visionRange` をLightのRangeへ反映する
+  * `rangeMultiplier` によってゲーム内の視界範囲とLightの実際のRangeを調整できる
+  * `intensity` によって視界内の光量を調整できる
+
+* [x] `XenoSteelVisionManager` にユニット表示処理を接続
+
+  * 行動中ユニットは常に表示する
+  * 行動中ユニットの視界内に存在するユニットを表示する
+  * 視界外のユニットを非表示にする
+  * 視界外のユニットのVisionLightも非表示にする
+
+* [x] 視界更新時のLight範囲更新
+
+  * ターン開始時に `XenoUnitData.visionRange` を取得してLightのRangeへ反映する
+  * 行動中ユニットの移動完了時にも視界とLightのRangeを更新する
+
+* [x] メイン画面の視界表現を調整
+
+  * マップ全体を暗くし、行動中ユニット周辺をLightで照らす方式を採用
+  * 視界範囲の外側を暗くする
+  * Lightの減衰によって視界の端に向かって徐々に暗くなる表現とする
+  * `visionRange` とLightのRangeを連動させつつ、光量は `intensity` で個別に調整できる構造とした
+
+#### Sprint 5.5-7 完了条件
+
+* [x] 行動中ユニットを基準にメイン画面の視界を制御
+* [x] 視界外の敵ユニットをメイン画面から非表示
+* [x] 視界外の敵ユニットのLightを非表示
+* [x] ユニット移動後に視界を更新
+* [x] ターン開始時に視界を更新
+* [x] `visionRange` をLightのRangeへ反映
+* [x] 視界を3D空間上のLightとして表現
+
 
 ## Sprint 5.5-8
 
 戦術マップ基盤
+
+## 実装内容
+
+### 戦術マップへの敵情報表示
+
+* [x] `XenoSteelTacticalMapEnemyManager.cs` を作成
+
+  * `XenoSteelInformationManager` が保持している敵情報を取得
+  * 取得した敵情報を戦術マップ上に表示
+  * 情報更新時に既存の敵マーカーをクリアして再生成
+
+* [x] `XenoSteelTacticalMapEnemyMarker.cs` を作成
+
+  * Visualで確認した敵を戦術マップ上に表示
+  * 敵専用Spriteを設定可能
+  * マーカー位置をセル座標から戦術マップ座標へ変換
+
+* [x] `XenoSteelTacticalMapRadarMarker.cs` を作成
+
+  * Radarで探知した敵を円形の範囲として表示
+  * Visual用の敵マーカーとは別Prefabとして管理
+  * Radarの情報精度に応じて表示範囲を変更
+
+### Visual / Radar の表示分離
+
+* [x] Visualで確認した敵は正確なセル位置に敵マーカーを表示
+* [x] Radarで探知した敵は実際の敵セルを直接表示せず、推定範囲を円で表示
+* [x] Visual情報を取得している敵にはRadar円を表示しない
+* [x] Radarの情報精度を0～5で扱う
+
+  * Precision 0：表示しない
+  * Precision 1：半径5セル
+  * Precision 2：半径4セル
+  * Precision 3：半径3セル
+  * Precision 4：半径2セル
+  * Precision 5：半径1セル
+* [x] Radar円の中心は実際の敵セルをそのまま使用せず、区画の代表位置として表示
+* [x] Radarの代表位置が実際の敵セルと一致する場合は位置をずらし、正確なセル位置が直接表示されないようにする
+
+### Radar情報の統合
+
+* [x] `XenoSteelInformationManager.ConfirmRadarEnemy()` を変更
+
+  * Visualで確認済みの情報をRadarで上書きしない
+  * Radar同士の場合は、より高い `InformationPrecision` を保持
+  * 複数の味方ユニットが同じ敵を探知した場合も最高精度の情報を保持
+
+### 戦術マップに表示する対象の整理
+
+* [x] 敵側ユニットが味方ユニットをRadarで検出する処理自体は維持
+* [x] 戦術マップではプレイヤー側から見た敵ユニットのみを表示
+* [x] 味方ユニットが敵情報として戦術マップ上に表示されないようにする
+
+### ターン処理との接続
+
+* [x] `XenoSteelVisionManager` から戦術マップの敵情報更新を呼び出せる構造を追加
+* [x] ターン開始時の視界・Radar更新後に戦術マップを更新
+* [x] ターン終了・次ユニット開始時にも取得済み敵情報を戦術マップへ反映
+* [x] 視界によるVisual情報とRadarによる探知情報を、同じ `XenoSteelInformationManager` の情報を基準に戦術マップへ反映
+
+## 関連する情報管理の変更
+
+* [x] `XenoSteelEnemyInformation` の `Source` を利用してVisual / Radarを判別
+* [x] `InformationPrecision` を利用してRadar情報の精度を管理
+* [x] `GetAllInformations()` から戦術マップ側が取得済み情報を参照できる構造を追加
+* [x] 実際の敵ユニット位置と、プレイヤーが取得した敵情報を分けて扱う構造を維持
+
+## 完了条件
+
+* [x] 戦術マップ上に取得済みの敵情報を表示できる
+* [x] VisualとRadarで表示方法を区別できる
+* [x] Visualは敵の正確なセル位置を表示できる
+* [x] Radarは敵の正確なセル位置を直接表示せず、推定範囲を表示できる
+* [x] Radar Precision 1～5を表示範囲へ反映できる
+* [x] Visual取得済みの敵にRadar表示が重複しない
+* [x] 複数ユニットによるRadar探知を統合できる
+* [x] 味方ユニットが戦術マップ上の敵情報として表示されない
+* [x] ターン開始時の情報更新を戦術マップへ反映できる
+
 
 ## 実装項目
 
@@ -1132,20 +1312,20 @@ detectionDifference = radarAccuracy - stealth
 
 ### 視界
 
-* [ ] ユニットごとの視界範囲を設定
+* [x] ユニットごとの視界範囲を設定
 * [ ] 建物などの遮蔽物を考慮した視界判定
-* [ ] 視界内に入った敵を認識待ち状態として管理
-* [ ] 1ターン経過後に視認情報を取得
+* [x] ターン開始時に全ユニットの視界判定
 * [ ] 視界から外れた場合の情報状態を管理
+
 
 ### レーダー
 
-* [ ] `XenoUnitData`などから機体ごとのレーダー性能を設定
-* [ ] 索敵精度を設定
-* [ ] 敵側のステルス値を設定
-* [ ] 索敵精度とステルスを比較する探知判定
-* [ ] 視界外の敵を探知可能にする
-* [ ] 探知失敗時は敵情報を表示しない
+* [x] `XenoUnitData`などから機体ごとのレーダー性能を設定
+* [x] 索敵精度を設定
+* [x] 敵側のステルス値を設定
+* [x] 索敵精度とステルスを比較する探知判定
+* [x] 視界外の敵を探知可能にする
+* [x] 探知失敗時は敵情報を表示しない
 * [ ] レーダー処理を機体以外からも利用できる共通システムとして設計
 
 ### 情報管理
@@ -1205,18 +1385,29 @@ Sprint 5.5で取得できるようになった視認・探知情報を戦術マ�
 * 戦術マップにはメイン画面では確認できないステージ全体の構造が表示される
 
 ## 実装項目
+### Sprint 5.6 追加・変更
 
-* [ ] 戦術マップUI
-* [ ] ステージ全体の簡略マップ表示
-* [ ] 味方ユニット表示
-* [ ] 視認した敵の表示
-* [ ] 探知した敵の表示
-* [ ] 情報状態ごとの表示
-* [ ] 敵の最終確認位置の保存
-* [ ] 敵が情報範囲外へ移動した場合の処理
-* [ ] 古い情報の扱い
-* [ ] 戦術マップの拡大表示
-* [ ] 行動ユニット変更時のメイン画面視界更新
+- [ ] ミニマップからフルマップを表示
+  - 戦闘画面のミニマップをクリックして、同じ戦術マップをフルスクリーン表示
+  - 別Sceneへの遷移は行わない
+  - フルマップ上でパン操作に対応
+  - フルマップ上でズーム操作に対応
+
+- [ ] 古い敵情報の保持期限
+  - `LastKnown` と `Radar` の情報を `LastUpdatedRound` で管理
+  - 最終更新から3ラウンド経過した情報を削除
+  - 情報削除に合わせて戦術マップ上のマーカーも削除
+
+- [ ] 敵ターン中の視界内敵ユニット表示
+  - 敵ユニットがいずれかの味方ユニットの視界内に入った場合、敵ターン中でも `visualRoot` のみ表示
+  - `highlightObject` と `VisionLight` は表示しない
+  - 敵ユニットの移動・攻撃・Skill演出を視認できるようにする
+  - 戦術情報の取得処理とは分離して、3D表示のみを制御する
+
+- [ ] RadarのSkill効果への対応
+  - `XenoSteelRadarSystem` をRadar処理の共通処理として使用
+  - Skillから指定範囲・精度でRadar探知を実行できる構造にする
+  - 手動RadarとSkillによるRadarで同じ情報管理処理を使用する
 
 ---
 

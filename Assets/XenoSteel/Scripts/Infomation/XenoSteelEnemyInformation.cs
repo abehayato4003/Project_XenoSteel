@@ -14,58 +14,53 @@ namespace XenoSteel.Information
 
         public XenoSteelInformationSource Source { get; private set; }
 
-        public Vector3 LastKnownPosition { get; private set; }
+        public Vector2Int LastKnownCell { get; private set; }
 
         public int LastUpdatedRound { get; private set; }
-
-        public int RecognitionPendingRound { get; private set; }
-
-        public int RecognitionPendingTurnIndex { get; private set; }
 
         public int InformationPrecision { get; private set; }
 
         public XenoSteelEnemyInformation(
             XenoSteelEnemyInformationState state,
             XenoSteelInformationSource source,
-            Vector3 position,
+            Vector2Int cell,
             int round)
         {
             State = state;
             Source = source;
-            LastKnownPosition = position;
+            LastKnownCell = cell;
             LastUpdatedRound = round;
         }
 
         public void UpdateInformation(
             XenoSteelInformationSource source,
-            Vector3 position,
+            Vector2Int cell,
             int round)
         {
             State = XenoSteelEnemyInformationState.Confirmed;
             Source = source;
-            LastKnownPosition = position;
+            LastKnownCell = cell;
             LastUpdatedRound = round;
         }
 
-        public void SetRecognitionPending(
-            int round,
-            int turnIndex)
-        {
-            State = XenoSteelEnemyInformationState.RecognitionPending;
-            RecognitionPendingRound = round;
-            RecognitionPendingTurnIndex = turnIndex;
-        }
-
         public void SetRadarInformation(
-            Vector3 position,
+            Vector2Int cell,
             int round,
             int informationPrecision)
         {
             State = XenoSteelEnemyInformationState.Confirmed;
             Source = XenoSteelInformationSource.Radar;
-            LastKnownPosition = position;
+            LastKnownCell = cell;
             LastUpdatedRound = round;
             InformationPrecision = informationPrecision;
+        }
+
+        public void SetLastKnown()
+        {
+            if (Source != XenoSteelInformationSource.Visual)
+                return;
+
+            State = XenoSteelEnemyInformationState.LastKnown;
         }
     }
 }

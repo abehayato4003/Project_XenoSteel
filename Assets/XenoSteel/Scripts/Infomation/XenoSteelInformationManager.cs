@@ -14,54 +14,34 @@ namespace XenoSteel.Information
         private readonly Dictionary<object, XenoSteelEnemyInformation> _enemyInformations
             = new Dictionary<object, XenoSteelEnemyInformation>();
 
-        public void SetRecognitionPending(
-            object enemy,
-            Vector3 position,
-            int round,
-            int turnIndex)
-        {
-            if (_enemyInformations.TryGetValue(enemy, out var information))
-            {
-                information.SetRecognitionPending(
-                    round,
-                    turnIndex
-                );
-                return;
-            }
-
-            _enemyInformations.Add(
-                enemy,
-                new XenoSteelEnemyInformation(
-                    XenoSteelEnemyInformationState.RecognitionPending,
-                    XenoSteelInformationSource.None,
-                    position,
-                    round));
-
-            _enemyInformations[enemy].SetRecognitionPending(
-                round,
-                turnIndex
-            );
-        }
-
         public void ConfirmEnemy(
             object enemy,
             XenoSteelInformationSource source,
-            Vector3 position,
+            Vector2Int cell,
             int round)
         {
             if (_enemyInformations.TryGetValue(enemy, out var information))
             {
-                information.UpdateInformation(source, position, round);
-                return;
+                information.UpdateInformation(source, cell, round);
+            }
+            else
+            {
+                _enemyInformations.Add(
+                    enemy,
+                    new XenoSteelEnemyInformation(
+                        XenoSteelEnemyInformationState.Confirmed,
+                        source,
+                        cell,
+                        round));
             }
 
-            _enemyInformations.Add(
-                enemy,
-                new XenoSteelEnemyInformation(
-                    XenoSteelEnemyInformationState.Confirmed,
-                    source,
-                    position,
-                    round));
+            Debug.Log(
+                $"Visual Confirm: " +
+                $"Enemy={enemy}, " +
+                $"Source={source}, " +
+                $"Cell={cell}, " +
+                $"Round={round}"
+            );
         }
 
         public bool TryGetInformation(
@@ -76,46 +56,51 @@ namespace XenoSteel.Information
             return _enemyInformations;
         }
 
-        public void ConfirmPendingEnemy(
-            object enemy,
-            Vector3 position,
-            int round)
-        {
-            if (!_enemyInformations.TryGetValue(enemy, out var information))
-                return;
-
-            if (information.State != XenoSteelEnemyInformationState.RecognitionPending)
-                return;
-
-            information.UpdateInformation(
-                XenoSteelInformationSource.Visual,
-                position,
-                round
-            );
-        }
-
         public void ConfirmRadarEnemy(
             IUnit enemy,
-            Vector3 position,
+            Vector2Int cell,
             int round,
             int informationPrecision)
         {
             if (enemy == null)
                 return;
 
-            if (!_enemyInformations.TryGetValue(enemy, out var information))
+            if (!_enemyInformations.TryGetValue(
+                enemy,
+                out var information))
             {
                 information = new XenoSteelEnemyInformation(
-                XenoSteelEnemyInformationState.Confirmed,
-                XenoSteelInformationSource.Radar,
-                position,
-                round
-            );
+                    XenoSteelEnemyInformationState.Confirmed,
+                    XenoSteelInformationSource.Radar,
+                    cell,
+                    round
+                );
+
                 _enemyInformations.Add(enemy, information);
+            }
+            else
+            {
+                // Visualで確認済みなら、
+                // Radar情報で上書きしない。
+                if (information.Source ==
+                    XenoSteelInformationSource.Visual &&
+                    information.State !=
+                    XenoSteelEnemyInformationState.LastKnown)
+                {
+                    return;
+                }
+
+                // Radar同士の場合は、
+                // より高い精度の情報を維持する。
+                if (information.InformationPrecision >
+                    informationPrecision)
+                {
+                    return;
+                }
             }
 
             information.SetRadarInformation(
-                position,
+                cell,
                 round,
                 informationPrecision
             );

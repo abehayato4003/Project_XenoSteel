@@ -6,7 +6,7 @@ namespace XenoSteel.Information
     public enum XenoSteelEnemyInformationState
     {
         Unknown,
-        RecognitionPending,
-        Confirmed
+        Confirmed,
+        LastKnown
     }
 }

@@ -1,5 +1,6 @@
 using TurnBasedStrategyFramework.Common.Controllers;
 using TurnBasedStrategyFramework.Common.Units.Abilities;
+using TurnBasedStrategyFramework.Common.Units;
 using TurnBasedStrategyFramework.Unity.Units;
 using TurnBasedStrategyFramework.Unity.Units.Abilities;
 using XenoSteel.Core;
@@ -11,23 +12,50 @@ namespace XenoSteel.Information
     {
         private IGridController _gridController;
 
-        private bool _hasUsedThisTurn;
+        private int _lastUsedRound = -1;
+        private int _lastUsedTurnIndex = -1;
+
         public bool CanUseRadar()
         {
-            return !_hasUsedThisTurn;
+            if (_gridController == null)
+                return false;
+
+            var turnResolver =
+                _gridController.TurnResolver
+                    as XenoSteel.Core.XenoSteelTurnResolver;
+
+            if (turnResolver == null)
+                return false;
+
+            if (turnResolver.TurnOrder == null)
+                return false;
+
+            if (turnResolver.CurrentIndex < 0 ||
+                turnResolver.CurrentIndex >= turnResolver.TurnOrder.Count)
+                return false;
+
+            IUnit currentUnit =
+                turnResolver.TurnOrder[turnResolver.CurrentIndex];
+
+            if (currentUnit != UnitReference)
+                return false;
+
+            if (_lastUsedRound != turnResolver.CurrentRound ||
+                _lastUsedTurnIndex != turnResolver.CurrentIndex)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public override void Initialize(IGridController gridController)
         {
             base.Initialize(gridController);
-
             _gridController = gridController;
-            _hasUsedThisTurn = false;
-        }
 
-        public override void OnTurnStart(IGridController gridController)
-        {
-            _hasUsedThisTurn = false;
+            _lastUsedRound = -1;
+            _lastUsedTurnIndex = -1;
         }
 
         public override bool CanPerform(IGridController gridController)
@@ -71,10 +99,21 @@ namespace XenoSteel.Information
                 turnResolver.CurrentRound
             );
 
-            _hasUsedThisTurn = true;
+            XenoSteelVisionManager visionManager =
+                Object.FindFirstObjectByType<XenoSteelVisionManager>();
+
+            if (visionManager != null)
+            {
+                visionManager.UpdateTacticalMapEnemyMarkers();
+            }
+
+            _lastUsedRound = turnResolver.CurrentRound;
+            _lastUsedTurnIndex = turnResolver.CurrentIndex;
 
             Debug.Log(
-                $"Manual Radar: Unit={unit.UnitID}"
+                $"Manual Radar: Unit={unit.UnitID}, " +
+                $"Round={_lastUsedRound}, " +
+                $"TurnIndex={_lastUsedTurnIndex}"
             );
         }
 

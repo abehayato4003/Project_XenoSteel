@@ -169,15 +169,14 @@ namespace XenoSteel.Information
 
                 var cell = result.Target.CurrentCell;
 
-                UnityEngine.Vector3 position = new UnityEngine.Vector3(
-                    cell.WorldPosition.x,
-                    cell.WorldPosition.y,
-                    cell.WorldPosition.z
+                Vector2Int cellPosition = new Vector2Int(
+                    cell.GridCoordinates.x,
+                    cell.GridCoordinates.y
                 );
 
                 informationManager.ConfirmRadarEnemy(
                     result.Target,
-                    position,
+                    cellPosition,
                     round,
                     result.InformationPrecision
                 );
