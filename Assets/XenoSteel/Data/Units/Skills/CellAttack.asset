@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54a4924995947ce4a9ce5f9ecc0815af, type: 3}
-  m_Name: Skill_TestRange
+  m_Name: CellAttack
   m_EditorClassIdentifier: 
-  skillName: BeanShot
-  icon: {fileID: 849359091, guid: b23efbd12ad13284bb8d41c354d2faa1, type: 3}
+  skillName: CellSkill
+  icon: {fileID: -225270042, guid: b23efbd12ad13284bb8d41c354d2faa1, type: 3}
   range: 5
-  power: 200
-  energyCost: 60
-  area: 0
+  power: 100
+  energyCost: 100
+  area: 3
   attackShape: 0
   attackWidth: 1
-  areaDamageMultiplier: 1
+  areaDamageMultiplier: 0.5
   attribute: 
   requiresTarget: 1
-  targetType: 0
+  targetType: 1
   presentation: {fileID: 0}
   effects:
-  - {fileID: 11400000, guid: 3be2caa7ee4cfa241a5b1c6a1fa5584d, type: 2}
+  - {fileID: 11400000, guid: c257dbd88997ffc479e1f0fc81aecd7d, type: 2}

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Skill_TestMelee
   m_EditorClassIdentifier: 
   skillName: TestMelee
+  icon: {fileID: 393647814, guid: e4aff03f245322e4cad8edf249dc45b8, type: 3}
   range: 1
   power: 100
   energyCost: 50
@@ -22,4 +23,6 @@ MonoBehaviour:
   areaDamageMultiplier: 0.5
   attribute: Phisical
   requiresTarget: 1
+  targetType: 0
   presentation: {fileID: 11400000, guid: 793d5d708d749114e837cbe4ef74578f, type: 2}
+  effects: []

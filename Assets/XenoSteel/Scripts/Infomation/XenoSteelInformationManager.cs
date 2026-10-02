@@ -80,7 +80,7 @@ namespace XenoSteel.Information
             }
             else
             {
-                // Visualで確認済みなら、
+                // Visualで現在確認できている敵は、
                 // Radar情報で上書きしない。
                 if (information.Source ==
                     XenoSteelInformationSource.Visual &&
@@ -90,9 +90,16 @@ namespace XenoSteel.Information
                     return;
                 }
 
-                // Radar同士の場合は、
+                // LastKnownになった敵は、Radarで再検出できる。
+                // この場合は精度比較を行わず、Radar情報で更新する。
+
+                // Radar同士の場合だけ、
                 // より高い精度の情報を維持する。
-                if (information.InformationPrecision >
+                if (information.State ==
+                    XenoSteelEnemyInformationState.Confirmed &&
+                    information.Source ==
+                    XenoSteelInformationSource.Radar &&
+                    information.InformationPrecision >
                     informationPrecision)
                 {
                     return;
@@ -108,9 +115,40 @@ namespace XenoSteel.Information
             Debug.Log(
                 $"Radar Detection: " +
                 $"Enemy={enemy.UnitID}, " +
-                $"Precision={informationPrecision}, " +
-                $"Round={round}"
+                $"Precision={informationPrecision}"
             );
+        }
+
+        public void RemoveExpiredInformations(int currentRound)
+        {
+            List<object> expiredEnemies =
+                new List<object>();
+
+            foreach (
+                KeyValuePair<object, XenoSteelEnemyInformation> pair
+                in _enemyInformations)
+            {
+                XenoSteelEnemyInformation information =
+                    pair.Value;
+
+                if (information == null)
+                    continue;
+
+                // 最終更新から3ラウンド経過した情報を削除
+                if (currentRound - information.LastUpdatedRound >= 3)
+                {
+                    expiredEnemies.Add(pair.Key);
+                }
+            }
+
+            foreach (object enemy in expiredEnemies)
+            {
+                _enemyInformations.Remove(enemy);
+
+                Debug.Log(
+                    $"Enemy Information Expired: Enemy={enemy}"
+                );
+            }
         }
     }
 }

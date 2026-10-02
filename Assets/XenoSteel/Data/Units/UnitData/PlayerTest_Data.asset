@@ -18,13 +18,14 @@ MonoBehaviour:
   armor: 100
   mobility: 100
   movement: 5
-  attack: 50
+  attack: 0
   terrainAdaptation: 0
   size: 0
   pilot: {fileID: 11400000, guid: 3d875b9f0818bd54594433d84c0d53d5, type: 2}
   skills:
   - {fileID: 11400000, guid: d6d91781a1ae86c4e833ee1d982eb0c0, type: 2}
-  - {fileID: 11400000, guid: eb6fef5c38bc868459625a527e3f2068, type: 2}
+  - {fileID: 11400000, guid: 60e89a72f65c24142b78a25c85dacf5b, type: 2}
+  - {fileID: 11400000, guid: e4a5e56e3f306b546a99d19030a07657, type: 2}
   visionRange: 5
   radarRange: 10
   radarAccuracy: 5

@@ -409,16 +409,11 @@ namespace XenoSteel.Information
             if (unit == null)
                 return;
 
-            if (_subscribedUnit == unit)
+            if (_subscribedUnits.Contains(unit))
                 return;
 
-            if (_subscribedUnit != null)
-            {
-                _subscribedUnit.UnitMoved -= OnUnitMoved;
-            }
-
-            _subscribedUnit = unit;
-            _subscribedUnit.UnitMoved += OnUnitMoved;
+            _subscribedUnits.Add(unit);
+            unit.UnitMoved += OnUnitMoved;
         }
 
         private void UnsubscribeFromUnitMoved()
@@ -437,11 +432,32 @@ namespace XenoSteel.Information
             if (_gridController == null || _turnResolver == null)
                 return;
 
-            Debug.Log(
-                $"Vision Update Start: CurrentIndex={_turnResolver.CurrentIndex}"
-            );
+            if (_turnResolver.TurnOrder == null)
+                return;
 
-            UpdateVision(
+            if (_turnResolver.CurrentIndex < 0 ||
+                _turnResolver.CurrentIndex >= _turnResolver.TurnOrder.Count)
+                return;
+
+            IUnit currentUnit =
+                _turnResolver.TurnOrder[_turnResolver.CurrentIndex];
+
+            if (currentUnit == null)
+                return;
+
+            // 味方ターン
+            if (currentUnit.PlayerNumber == 0)
+            {
+                UpdateVision(
+                    _gridController,
+                    _turnResolver
+                );
+
+                return;
+            }
+
+            // 敵ターン
+            UpdateEnemyTurnVisualVisibility(
                 _gridController,
                 _turnResolver
             );
@@ -660,6 +676,109 @@ namespace XenoSteel.Information
                 return;
 
             tacticalMap.UpdateEnemyMarkers();
+        }
+
+        private void UpdateEnemyTurnVisualVisibility(
+            GridController gridController,
+            XenoSteelTurnResolver turnResolver)
+        {
+            if (gridController == null || turnResolver == null)
+                return;
+
+            HashSet<Vector2Int> playerVisibleCells =
+                new HashSet<Vector2Int>();
+
+            // 味方全員の視界を取得
+            foreach (IUnit unit in turnResolver.TurnOrder)
+            {
+                if (unit == null)
+                    continue;
+
+                if (unit.PlayerNumber != 0)
+                    continue;
+
+                if (unit.CurrentCell == null)
+                    continue;
+
+                var unityUnit =
+                    unit as TurnBasedStrategyFramework.Unity.Units.Unit;
+
+                if (unityUnit == null)
+                    continue;
+
+                var initiative =
+                    unityUnit.GetComponent<XenoSteelInitiative>();
+
+                if (initiative == null ||
+                    initiative.UnitData == null)
+                    continue;
+
+                int visionRange =
+                    initiative.UnitData.visionRange;
+
+                List<ICell> visibleCells =
+                    _visionSystem.GetVisibleCells(
+                        unit,
+                        gridController,
+                        visionRange
+                    );
+
+                foreach (ICell cell in visibleCells)
+                {
+                    if (cell == null)
+                        continue;
+
+                    playerVisibleCells.Add(
+                        new Vector2Int(
+                            cell.GridCoordinates.x,
+                            cell.GridCoordinates.y
+                        )
+                    );
+                }
+            }
+
+            // 全ユニットの表示状態を更新
+            foreach (ICell cell in gridController.CellManager.GetCells())
+            {
+                if (cell == null)
+                    continue;
+
+                if (cell.CurrentUnits == null)
+                    continue;
+
+                foreach (IUnit unit in cell.CurrentUnits)
+                {
+                    if (unit == null)
+                        continue;
+
+                    // 敵ユニットだけを対象にする
+                    if (unit.PlayerNumber == 0)
+                        continue;
+
+                    var unityUnit =
+                        unit as TurnBasedStrategyFramework.Unity.Units.Unit;
+
+                    if (unityUnit == null)
+                        continue;
+
+                    var visibility =
+                        unityUnit.GetComponent<XenoSteelUnitVisibility>();
+
+                    if (visibility == null)
+                        continue;
+
+                    Vector2Int unitCell =
+                        new Vector2Int(
+                            cell.GridCoordinates.x,
+                            cell.GridCoordinates.y
+                        );
+
+                    bool isVisible =
+                        playerVisibleCells.Contains(unitCell);
+
+                    visibility.SetVisualOnlyVisible(isVisible);
+                }
+            }
         }
     }
 }

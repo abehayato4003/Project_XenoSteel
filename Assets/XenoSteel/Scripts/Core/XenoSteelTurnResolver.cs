@@ -35,8 +35,21 @@ namespace XenoSteel.Core
             Debug.Log("XenoSteelTurnResolver.ResolveStart");
 
             _currentRound = 1;
+
+            XenoSteelInformationManager informationManager =
+                Object.FindFirstObjectByType<XenoSteelInformationManager>();
+
+            if (informationManager != null)
+            {
+                informationManager.RemoveExpiredInformations(
+                    _currentRound
+                );
+            }
+
             CreateTurnOrder(gridController);
+
             _currentIndex = 0;
+
             UpdateTurnOrderUI();
 
             XenoSteelVisionManager visionManager =
@@ -108,6 +121,17 @@ namespace XenoSteel.Core
             if (_currentIndex >= _turnOrder.Count)
             {
                 _currentRound++;
+
+                XenoSteelInformationManager informationManager =
+                    Object.FindFirstObjectByType<XenoSteelInformationManager>();
+
+                if (informationManager != null)
+                {
+                    informationManager.RemoveExpiredInformations(
+                        _currentRound
+                    );
+                }
+
                 CreateTurnOrder(gridController);
                 _currentIndex = 0;
             }
@@ -168,7 +192,6 @@ namespace XenoSteel.Core
 
         private TurnContext CreateTurnContext(GridController gridController)
         {
-            
             IUnit unit = _turnOrder[_currentIndex];
 
             XenoUnitStatusUI statusUI =
@@ -184,7 +207,9 @@ namespace XenoSteel.Core
                 .FirstOrDefault(p => p.PlayerNumber == unit.PlayerNumber);
 
             XenoSteelSkillSelectionUI skillSelectionUI =
-                Object.FindFirstObjectByType<XenoSteelSkillSelectionUI>();
+                Object.FindFirstObjectByType<XenoSteelSkillSelectionUI>(
+                    FindObjectsInactive.Include
+                );
 
             if (skillSelectionUI != null)
             {

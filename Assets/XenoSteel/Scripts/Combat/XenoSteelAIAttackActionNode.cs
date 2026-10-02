@@ -123,9 +123,8 @@ namespace XenoSteel.AI
                 var damage =
                     XenoSteelDamageCalculator.CalculateDamage(
                         initiative.Stats,
-                        skill,
-                        targetInitiative.Stats
-                    );
+                        skill.power,
+                        targetInitiative.Stats);
 
                 // より高いダメージを出せるSkillを採用
                 if (damage > bestDamage)

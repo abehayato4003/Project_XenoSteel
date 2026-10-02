@@ -6,10 +6,10 @@ namespace XenoSteel.Combat
     {
         public static int CalculateDamage(
             XenoSteelUnitStats attackerStats,
-            SkillData skill,
+            int power,
             XenoSteelUnitStats defenderStats)
         {
-            int baseDamage = attackerStats.Attack + skill.power;
+            int baseDamage = attackerStats.Attack + power;
 
             int damage = baseDamage - defenderStats.Armor;
 
