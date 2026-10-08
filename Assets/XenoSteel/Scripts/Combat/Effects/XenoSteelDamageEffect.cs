@@ -2,6 +2,7 @@ using UnityEngine;
 using TurnBasedStrategyFramework.Unity.Units;
 using XenoSteel.Core;
 using XenoSteel.Units;
+using XenoSteel.Information;
 
 using TurnBasedStrategyFramework.Common.Units;
 
@@ -53,6 +54,20 @@ namespace XenoSteel.Combat
                 );
 
             targetUnit.ModifyHealth(-damage, attackerUnit);
+
+            if (targetUnit.Health <= 0 &&
+                targetUnit.PlayerNumber == 0)
+            {
+                XenoSteelEnemyInformationManager enemyInformationManager =
+                    Object.FindFirstObjectByType<XenoSteelEnemyInformationManager>();
+
+                if (enemyInformationManager != null)
+                {
+                    enemyInformationManager.RemovePlayerInformation(
+                        targetUnit
+                    );
+                }
+            }
 
             targetUnit.InvokeAttacked(
                 new UnitAttackedEventArgs(

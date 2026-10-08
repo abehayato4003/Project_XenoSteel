@@ -319,16 +319,29 @@ namespace XenoSteel.Combat
                     return;
                 }
 
-                var effectContext =
-                new XenoSteelEffectContext(
-                    UnitReference,
-                    target,
-                    null,
-                    gridController,
-                    turnResolver,
-                    informationManager,
-                    turnResolver.CurrentRound
+                // 先にAttackCommandを実行する。
+                // targetが生存している状態で
+                // MarkAsAttacking / MarkAsDefendingを完了させる。
+                await UnitReference.HumanExecuteAbility(
+                    new XenoSteelAttackCommand(
+                        target,
+                        (int)attackerUnit.ActionPoints),
+                    gridController
                 );
+
+                // AttackCommand完了後にEffectを実行する。
+                // ここでダメージを与え、targetが撃破されても
+                // その後にtargetのRendererを触らない。
+                var effectContext =
+                    new XenoSteelEffectContext(
+                        UnitReference,
+                        target,
+                        null,
+                        gridController,
+                        turnResolver,
+                        informationManager,
+                        turnResolver.CurrentRound
+                    );
 
                 if (_currentSkill.effects != null)
                 {
@@ -340,12 +353,6 @@ namespace XenoSteel.Combat
                         effect.Execute(effectContext);
                     }
                 }
-
-                await UnitReference.HumanExecuteAbility(
-                    new XenoSteelAttackCommand(
-                        target,
-                        (int)attackerUnit.ActionPoints),
-                    gridController);
             }
 
 
@@ -357,6 +364,9 @@ namespace XenoSteel.Combat
                     $"EN consumed: {energyCost}, " +
                     $"EN after attack: {stats.EN}");
             }
+
+            // 攻撃スキル完了 → 次のユニットへ
+            gridController.EndTurn();
         }
 
         public override async void OnCellClicked(

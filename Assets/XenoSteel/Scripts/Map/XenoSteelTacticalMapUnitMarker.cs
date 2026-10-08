@@ -32,7 +32,12 @@ namespace XenoSteel.Information
                 return;
 
             if (_markerImage == null)
-                return;
+            {
+                _markerImage = GetComponent<Image>();
+
+                if (_markerImage == null)
+                    _markerImage = gameObject.AddComponent<Image>();
+            }
 
             _markerImage.sprite =
                 isCurrentUnit

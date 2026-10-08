@@ -27,7 +27,12 @@ namespace XenoSteel.Information
         public void SetEnemy()
         {
             if (_markerImage == null)
-                return;
+            {
+                _markerImage = GetComponent<Image>();
+
+                if (_markerImage == null)
+                    _markerImage = gameObject.AddComponent<Image>();
+            }
 
             _markerImage.sprite = enemySprite;
             _markerImage.enabled = true;

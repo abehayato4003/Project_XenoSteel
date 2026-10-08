@@ -15,12 +15,12 @@ MonoBehaviour:
   skillName: BeamSaber
   icon: {fileID: 1218260953, guid: b23efbd12ad13284bb8d41c354d2faa1, type: 3}
   range: 2
-  power: 100
+  power: 0
   energyCost: 40
   area: 0
   attackShape: 1
   attackWidth: 1
-  areaDamageMultiplier: 0.5
+  areaDamageMultiplier: 0
   attribute: 
   requiresTarget: 1
   targetType: 0

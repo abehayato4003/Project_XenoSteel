@@ -26,5 +26,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d51c988b5f3e71947991c58232042237, type: 2}
   visionRange: 5
   radarRange: 8
-  radarAccuracy: 3
+  radarAccuracy: 5
   stealth: 0

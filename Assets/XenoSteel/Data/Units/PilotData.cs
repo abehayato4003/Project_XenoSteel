@@ -1,5 +1,7 @@
 using UnityEngine;
 
+using XenoSteel.AI;
+
 namespace XenoSteel.Units
 {
     /// <summary>
@@ -11,6 +13,9 @@ namespace XenoSteel.Units
 
         [Header("基本情報")]
         public string pilotName;
+
+        [Header("AI Personality")]
+        public XenoSteelAIPersonality aiPersonality;
 
         [Header("Pilot Status Multiplier")]
         [SerializeField] private float hpMultiplier = 1.0f;

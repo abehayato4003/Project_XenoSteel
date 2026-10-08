@@ -84,14 +84,6 @@ namespace XenoSteel.Core
             XenoSteelRadarSystem radarSystem =
                 new XenoSteelRadarSystem();
 
-            XenoSteelInformationManager informationManager =
-                Object.FindFirstObjectByType<XenoSteelInformationManager>();
-
-            if (informationManager == null)
-            {
-                Debug.Log("Radar: InformationManager not found");
-                return;
-            }
 
             foreach (IUnit unit in _turnOrder)
             {
@@ -102,42 +94,102 @@ namespace XenoSteel.Core
                     $"Radar Call Start: Unit={unit.UnitID}"
                 );
 
-                radarSystem.UpdateRadarInformation(
-                    unit,
-                    gridController,
-                    informationManager,
-                    _currentRound
-                );
+                if (unit.PlayerNumber == 0)
+                {
+                    XenoSteelInformationManager informationManager =
+                        Object.FindFirstObjectByType<XenoSteelInformationManager>();
+
+                    if (informationManager == null)
+                        continue;
+
+                    radarSystem.UpdateRadarInformation(
+                        unit,
+                        gridController,
+                        informationManager,
+                        _currentRound
+                    );
+                }
+                else
+                {
+                    XenoSteelEnemyInformationManager informationManager =
+                        Object.FindFirstObjectByType<XenoSteelEnemyInformationManager>();
+
+                    if (informationManager == null)
+                        continue;
+
+                    radarSystem.UpdateRadarInformation(
+                        unit,
+                        gridController,
+                        informationManager,
+                        _currentRound
+                    );
+                }
             }
         }
 
-        public override TurnContext ResolveTurn(GridController gridController)
+        public override TurnContext ResolveTurn(
+            GridController gridController)
         {
-            Debug.Log($"ResolveTurn: Index={_currentIndex}, Count={_turnOrder.Count}");
-            // 次のユニットへ
-            _currentIndex++;
+            // 現在のTurnOrderから死亡・破壊済みUnitを除外
+            _turnOrder = _turnOrder
+                .Where(unit =>
+                    unit != null &&
+                    unit.Health > 0)
+                .ToList();
 
-            // 全ユニットが行動し終わったら次のラウンドへ
+            // 現在Indexが範囲外になった場合
             if (_currentIndex >= _turnOrder.Count)
             {
                 _currentRound++;
 
-                XenoSteelInformationManager informationManager =
-                    Object.FindFirstObjectByType<XenoSteelInformationManager>();
+                // ラウンド開始時に最新のUnitからTurnOrderを再構築
+                CreateTurnOrder(gridController);
 
-                if (informationManager != null)
+                _currentIndex = 0;
+            }
+            else
+            {
+                // 次のUnitへ進む
+                _currentIndex++;
+
+                // 次のUnitが存在しない場合は新ラウンド
+                if (_currentIndex >= _turnOrder.Count)
                 {
-                    informationManager.RemoveExpiredInformations(
-                        _currentRound
-                    );
+                    _currentRound++;
+
+                    CreateTurnOrder(gridController);
+
+                    _currentIndex = 0;
                 }
+            }
+
+            // 念のため、Indexが有効なUnitを指すまで進める
+            while (
+                _currentIndex < _turnOrder.Count &&
+                (
+                    _turnOrder[_currentIndex] == null ||
+                    _turnOrder[_currentIndex].Health <= 0
+                ))
+            {
+                _currentIndex++;
+            }
+
+            // 全Unitがいなくなった場合
+            if (_turnOrder.Count == 0)
+            {
+                return CreateTurnContext(gridController);
+            }
+
+            // Indexが末尾まで進んだ場合は新ラウンド
+            if (_currentIndex >= _turnOrder.Count)
+            {
+                _currentRound++;
 
                 CreateTurnOrder(gridController);
+
                 _currentIndex = 0;
             }
 
-            // 新しいターン開始時に、
-            // その時点で存在する全ユニットの視界を処理する
             XenoSteelVisionManager visionManager =
                 Object.FindFirstObjectByType<XenoSteelVisionManager>();
 

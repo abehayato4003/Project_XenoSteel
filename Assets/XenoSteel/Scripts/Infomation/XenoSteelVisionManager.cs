@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 using TurnBasedStrategyFramework.Common.Cells;
 using TurnBasedStrategyFramework.Common.Controllers;
@@ -249,6 +250,14 @@ namespace XenoSteel.Information
                         turnResolver
                     );
                 }
+                else
+                {
+                    UpdatePlayerRecognition(
+                        unit,
+                        visibleCells,
+                        turnResolver
+                    );
+                }
             }
 
             if (turnResolver.CurrentIndex >= 0 &&
@@ -395,6 +404,88 @@ namespace XenoSteel.Information
                     );
 
                     informationManager.ConfirmEnemy(
+                        targetUnit,
+                        XenoSteelInformationSource.Visual,
+                        cellPosition,
+                        turnResolver.CurrentRound
+                    );
+                }
+            }
+        }
+
+        private void UpdatePlayerRecognition(
+            IUnit currentUnit,
+            List<ICell> visibleCells,
+            XenoSteelTurnResolver turnResolver)
+        {
+            Debug.Log(
+                $"Enemy Vision Recognition Start: " +
+                $"Unit={currentUnit.UnitID}, " +
+                $"Player={currentUnit.PlayerNumber}, " +
+                $"VisibleCells={visibleCells.Count}"
+            );
+
+            if (currentUnit == null)
+                return;
+
+            // 敵軍のユニットだけが使用する
+            if (currentUnit.PlayerNumber == 0)
+                return;
+
+            XenoSteelEnemyInformationManager informationManager =
+                Object.FindFirstObjectByType<XenoSteelEnemyInformationManager>();
+
+            if (informationManager == null)
+                return;
+
+            // 敵軍が今回のVisionで確認したセルを記録
+            informationManager.RegisterObservedCells(
+                visibleCells
+                    .Select(cell => new Vector2Int(
+                        cell.GridCoordinates.x,
+                        cell.GridCoordinates.y
+                    ))
+            );
+
+            foreach (ICell cell in visibleCells)
+            {
+                if (cell.CurrentUnits == null)
+                    continue;
+
+                foreach (IUnit targetUnit in cell.CurrentUnits)
+                {
+                    if (targetUnit == null)
+                        continue;
+
+                    // Playerだけを認識する
+                    if (targetUnit.PlayerNumber != 0)
+                        continue;
+
+                    Vector2Int cellPosition = new Vector2Int(
+                        cell.GridCoordinates.x,
+                        cell.GridCoordinates.y
+                    );
+
+                    string informationState = "Unknown";
+
+                    if (informationManager.TryGetInformation(
+                            targetUnit,
+                            out var information))
+                    {
+                        informationState = information.State.ToString();
+                    }
+
+                    Debug.Log(
+                        $"Enemy Vision Recognition: " +
+                        $"CurrentUnit={currentUnit.UnitID}, " +
+                        $"CurrentPlayer={currentUnit.PlayerNumber}, " +
+                        $"TargetUnit={targetUnit.UnitID}, " +
+                        $"TargetPlayer={targetUnit.PlayerNumber}, " +
+                        $"Cell=({cellPosition.x},{cellPosition.y}), " +
+                        $"InformationState={informationState}"
+                    );
+
+                    informationManager.ConfirmPlayer(
                         targetUnit,
                         XenoSteelInformationSource.Visual,
                         cellPosition,

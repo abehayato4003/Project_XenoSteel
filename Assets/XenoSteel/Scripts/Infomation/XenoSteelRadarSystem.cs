@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 using TurnBasedStrategyFramework.Common.Controllers;
 using TurnBasedStrategyFramework.Common.Units;
@@ -138,8 +139,6 @@ namespace XenoSteel.Information
         }
 
         public void UpdateRadarInformation(
-            
-
             IUnit observer,
             IGridController gridController,
             XenoSteelInformationManager informationManager,
@@ -177,6 +176,93 @@ namespace XenoSteel.Information
                 );
 
                 informationManager.ConfirmRadarEnemy(
+                    result.Target,
+                    cellPosition,
+                    round,
+                    result.InformationPrecision
+                );
+            }
+        }
+
+        public void UpdateRadarInformation(
+            IUnit observer,
+            IGridController gridController,
+            XenoSteelEnemyInformationManager informationManager,
+            int round)
+        {
+            Debug.Log(
+                $"Enemy Radar Update: Observer={observer?.UnitID}, Round={round}"
+            );
+
+            if (observer == null ||
+                gridController == null ||
+                informationManager == null)
+            {
+                return;
+            }
+
+            var observerUnit =
+                observer as TurnBasedStrategyFramework.Unity.Units.Unit;
+
+            if (observerUnit == null)
+                return;
+
+            var observerInitiative =
+                observerUnit.GetComponent<XenoSteel.Core.XenoSteelInitiative>();
+
+            if (observerInitiative == null ||
+                observerInitiative.UnitData == null)
+            {
+                return;
+            }
+
+            int radarRange =
+                observerInitiative.UnitData.radarRange;
+
+            if (radarRange > 0 &&
+                observer.CurrentCell != null)
+            {
+                var observedCells = gridController.CellManager
+                    .GetCells()
+                    .Where(cell =>
+                        cell != null &&
+                        observer.CurrentCell.GetDistance(cell) <= radarRange)
+                    .Select(cell =>
+                        new Vector2Int(
+                            cell.GridCoordinates.x,
+                            cell.GridCoordinates.y))
+                    .ToList();
+
+                informationManager.RegisterObservedCells(
+                    observedCells);
+            }
+
+            List<XenoSteelRadarDetectionResult> detectedPlayers =
+                GetDetectedEnemies(
+                    observer,
+                    gridController
+                );
+
+            foreach (XenoSteelRadarDetectionResult result in detectedPlayers)
+            {
+                if (result.Target == null)
+                    continue;
+
+                if (result.Target.CurrentCell == null)
+                    continue;
+
+                // 敵軍RadarなのでPlayerだけを対象にする
+                if (result.Target.PlayerNumber != 0)
+                    continue;
+
+                var cell = result.Target.CurrentCell;
+
+                Vector2Int cellPosition = new Vector2Int(
+                    cell.GridCoordinates.x,
+                    cell.GridCoordinates.y
+                );
+
+                informationManager.ConfirmRadarPlayer(
                     result.Target,
                     cellPosition,
                     round,
@@ -285,6 +371,113 @@ namespace XenoSteel.Information
 
                 Debug.Log(
                     $"Radar Skill Detection: " +
+                    $"Target={target.UnitID}, " +
+                    $"Precision={informationPrecision}"
+                );
+            }
+        }
+
+        public void UpdateRadarInformation(
+            IUnit observer,
+            IGridController gridController,
+            XenoSteelEnemyInformationManager informationManager,
+            int round,
+            int radarRange,
+            int radarAccuracy)
+        {
+            Debug.Log(
+                $"Enemy Radar Skill Scan: " +
+                $"Observer={observer?.UnitID}, " +
+                $"Range={radarRange}, " +
+                $"Accuracy={radarAccuracy}"
+            );
+
+            if (observer == null ||
+                gridController == null ||
+                informationManager == null)
+            {
+                return;
+            }
+
+            if (radarRange <= 0 ||
+                radarAccuracy <= 0)
+            {
+                return;
+            }
+
+            if (observer.CurrentCell == null)
+            {
+                return;
+            }
+
+            foreach (IUnit target in gridController.UnitManager.GetUnits())
+            {
+                if (target == null)
+                    continue;
+
+                // 敵軍RadarなのでPlayerだけを対象にする
+                if (target.PlayerNumber != 0)
+                    continue;
+
+                if (target.Health <= 0)
+                    continue;
+
+                if (target.CurrentCell == null)
+                    continue;
+
+                int distance =
+                    observer.CurrentCell.GetDistance(
+                        target.CurrentCell
+                    );
+
+                if (distance > radarRange)
+                    continue;
+
+                var targetUnit =
+                    target as TurnBasedStrategyFramework.Unity.Units.Unit;
+
+                if (targetUnit == null)
+                    continue;
+
+                var targetInitiative =
+                    targetUnit.GetComponent<XenoSteel.Core.XenoSteelInitiative>();
+
+                if (targetInitiative == null ||
+                    targetInitiative.UnitData == null)
+                {
+                    continue;
+                }
+
+                int stealth =
+                    targetInitiative.UnitData.stealth;
+
+                int detectionDifference =
+                    radarAccuracy - stealth;
+
+                if (detectionDifference <= 0)
+                    continue;
+
+                int informationPrecision =
+                    System.Math.Min(
+                        detectionDifference,
+                        5
+                    );
+
+                Vector2Int cellPosition =
+                    new Vector2Int(
+                        target.CurrentCell.GridCoordinates.x,
+                        target.CurrentCell.GridCoordinates.y
+                    );
+
+                informationManager.ConfirmRadarPlayer(
+                    target,
+                    cellPosition,
+                    round,
+                    informationPrecision
+                );
+
+                Debug.Log(
+                    $"Enemy Radar Skill Detection: " +
                     $"Target={target.UnitID}, " +
                     $"Precision={informationPrecision}"
                 );
