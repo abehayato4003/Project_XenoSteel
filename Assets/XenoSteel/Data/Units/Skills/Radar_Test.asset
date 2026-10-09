@@ -15,15 +15,20 @@ MonoBehaviour:
   skillName: Radar
   icon: {fileID: -2067686930, guid: b23efbd12ad13284bb8d41c354d2faa1, type: 3}
   range: 1
-  power: 0
   energyCost: 50
   area: 0
   attackShape: 0
   attackWidth: 1
-  areaDamageMultiplier: 0.5
-  attribute: 
   requiresTarget: 1
   targetType: 2
   presentation: {fileID: 0}
   effects:
-  - {fileID: 11400000, guid: c257dbd88997ffc479e1f0fc81aecd7d, type: 2}
+  - rid: 6918977290982916166
+  references:
+    version: 2
+    RefIds:
+    - rid: 6918977290982916166
+      type: {class: XenoSteelRadarEffect, ns: XenoSteel.Combat, asm: Assembly-CSharp}
+      data:
+        radarRange: 5
+        radarAccuracy: 4

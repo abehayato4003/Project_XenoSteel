@@ -1,8 +1,9 @@
-using UnityEngine;
+using System;
 
 namespace XenoSteel.Combat
 {
-    public abstract class XenoSteelEffect : ScriptableObject
+    [Serializable]
+    public abstract class XenoSteelEffect
     {
         public abstract void Execute(
             XenoSteelEffectContext context

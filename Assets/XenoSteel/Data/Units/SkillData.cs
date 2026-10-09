@@ -16,7 +16,6 @@ namespace XenoSteel.Combat
 
         [Header("攻撃性能")]
         public int range = 1;
-        public int power = 100;
 
         [Header("EN")]
         public int energyCost = 0;
@@ -31,33 +30,27 @@ namespace XenoSteel.Combat
         [Min(1)]
         public int attackWidth = 1;
 
-        [Header("範囲攻撃ダメージ")]
-        [Range(0f, 1f)]
-        public float areaDamageMultiplier = 0.5f;
-
-        [Header("属性")]
-        public string attribute;
-
         [Header("使用条件")]
         public bool requiresTarget = true;
 
         [Header("対象選択")]
-    public SkillTargetType targetType = SkillTargetType.Unit;
+        public SkillTargetType targetType = SkillTargetType.Unit;
 
         [Header("戦闘演出")]
         public XenoSteelCombatPresentationData presentation;
 
         [Header("Effects")]
+        [SerializeReference]
         public XenoSteelEffect[] effects;
     }
 
     public enum SkillAttackShape
     {
-        Single,     // 単体
-        Line,       // 正面
-        Cross,      // 十字
+        Single,
+        Line,
+        Cross
     }
-    
+
     public enum SkillTargetType
     {
         Unit,

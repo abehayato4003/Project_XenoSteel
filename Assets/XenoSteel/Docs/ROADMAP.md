@@ -1481,6 +1481,103 @@ Effect
 
 という構造を目指す。
 
+## Skill Effectシステム
+
+### 目的
+
+Skillのデータと実際に発生する効果を分離し、1つのSkillに複数のEffectを設定できる構造を作る。
+
+### `SkillData.cs`（変更）
+
+* Skillの基本情報・射程・EN消費・攻撃範囲・攻撃形状・対象選択・戦闘演出を管理
+* `SkillTargetType` によって対象の指定方式を管理
+  * `Unit`：ユニットを対象にする
+  * `Cell`：セルを対象にする
+  * `None`：対象を指定せずに使用する
+* `effects` に `XenoSteelEffect[]` を追加
+* `[SerializeReference]` を使用し、Skillごとに異なるEffectのインスタンスを保持する
+* `presentation` から `XenoSteelCombatPresentationData` を参照し、Skillごとの戦闘演出を設定する
+
+### `XenoSteelEffect.cs`
+
+* Skillから実行する効果の基底クラス
+* `[Serializable]` を使用
+* `Execute(XenoSteelEffectContext context)` を抽象メソッドとして定義
+* ダメージや索敵などの効果を派生クラスとして実装するために使用する
+
+### `XenoSteelEffectContext.cs`
+
+* Effectの実行に必要な情報をまとめて渡すためのコンテキスト
+* 以下の情報を保持する
+  * 使用ユニット（`User`）
+  * 対象ユニット（`Target`）
+  * 対象セル（`Cell`）
+  * `IGridController`
+  * `XenoSteelTurnResolver`
+  * `XenoSteelInformationManager`
+  * 現在のラウンド数
+* 対象指定方式の異なるSkillから共通して使用する
+
+### `SkillDataEditor.cs`
+
+* `SkillData` 用のカスタムInspector
+* `SkillData.effects` にEffectを追加・設定するために使用する
+* `XenoSteelEffect` を継承した具象クラスを自動取得し、選択肢として表示する
+* Effectごとに型を選択できる
+* 選択したEffectのシリアライズ対象フィールドをInspectorに表示する
+* Effectの追加・削除に対応する
+* `XenoSteelDamageEffect` を選択すると、`power`、`areaDamageMultiplier`、`attribute` をInspectorから設定できる
+* `XenoSteelRadarEffect` など、`XenoSteelEffect` を継承するEffectも選択対象とする
+
+### `XenoSteelDamageEffect.cs`
+
+* `XenoSteelEffect` を継承したダメージ効果
+* 以下の項目を設定可能
+  * `power`：技の威力
+  * `areaDamageMultiplier`：範囲攻撃時のダメージ倍率
+  * `attribute`：属性
+* `XenoSteelDamageCalculator` を使用してダメージを計算
+* 対象ユニットのHPを減少させる
+* 味方ユニット撃破時に `XenoSteelEnemyInformationManager` から該当ユニットの情報を削除する
+* `UnitAttackedEventArgs` を発行し、ダメージポップアップなどのイベント処理へ接続する
+
+### `XenoSteelAttackAbility.cs`（変更）
+
+* `SkillData.effects` に設定されたEffectを実行する処理を追加
+* `XenoSteelEffectContext` を生成し、使用ユニット・対象・戦闘管理情報をEffectへ渡す
+* `Unit` / `Cell` / `None` の対象指定方式に対応する処理を追加
+* `Unit` 対象のSkillでは、攻撃演出と `XenoSteelAttackCommand` の実行後にEffectを適用する
+* `Cell` 対象のSkillでは、選択セルをコンテキストへ渡してEffectを実行する
+* `None` 対象のSkillでは、対象ユニットやセルを指定せずにEffectを実行する
+* SkillのEN消費と行動終了処理を接続する
+
+---
+
+## Sprint 5.5追加：Skillによる索敵
+
+### `XenoSteelRadarSystem.cs`（変更）
+
+* Skill専用の索敵処理を追加
+* Skillから指定された `radarRange` と `radarAccuracy` を使用して探知判定を行う
+* 敵ユニットのステルス値と索敵精度を比較する
+* 探知成功時に `XenoSteelInformationManager` へ敵の位置情報を登録する
+* 情報精度は索敵精度とステルス値の差を基準とし、最大5とする
+* 味方側・敵側それぞれの情報管理に対応する
+
+### `XenoSteelRadarEffect.cs`
+
+* `XenoSteelEffect` を継承した索敵効果
+* `XenoSteelEffectContext` から使用ユニット、グリッド、情報管理、現在のラウンドを取得する
+* `XenoSteelRadarSystem` を使用して索敵を実行する
+* Skillごとに索敵範囲と索敵精度を設定できるようにする
+* 索敵によって取得した情報を既存の情報管理システムへ接続する
+
+### Skill Effectの設定方式
+
+* `SkillData.effects` にEffectを登録し、Skillごとに適用する効果を設定する
+* ダメージ効果は `XenoSteelDamageEffect`、索敵効果は `XenoSteelRadarEffect` として管理する
+* Effectの処理内容は派生クラス側に分離し、`XenoSteelAttackAbility` から共通の `Execute()` を呼び出す構造とする
+
 ---
 
 # Sprint 6：ユニット編成・成長・セーブ／ロード

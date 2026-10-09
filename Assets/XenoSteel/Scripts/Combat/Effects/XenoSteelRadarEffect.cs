@@ -1,13 +1,12 @@
 using UnityEngine;
+
 using TurnBasedStrategyFramework.Unity.Units;
+
 using XenoSteel.Information;
 
 namespace XenoSteel.Combat
 {
-    [CreateAssetMenu(
-        fileName = "NewRadarEffect",
-        menuName = "XenoSteel/Effects/Radar"
-    )]
+    [System.Serializable]
     public class XenoSteelRadarEffect : XenoSteelEffect
     {
         [Header("レーダー範囲")]
@@ -34,7 +33,6 @@ namespace XenoSteel.Combat
                 Debug.Log("RadarEffect: InformationManager is null");
                 return;
             }
-
 
             Unit observer =
                 context.User as Unit;

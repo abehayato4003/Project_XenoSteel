@@ -40203,15 +40203,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d0a195cdd4df2842b2fc140c1eb6cd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  panel: {fileID: 1820638354}
-  skillNameText: {fileID: 1334261298}
-  powerText: {fileID: 1786668634}
-  rangeText: {fileID: 1588844037}
-  energyCostText: {fileID: 2054896483}
-  attributeText: {fileID: 215298344}
-  areaText: {fileID: 1294940881}
-  closeButton: {fileID: 1281168933}
-  canvasGroup: {fileID: 1820638356}
 --- !u!114 &1820638358
 MonoBehaviour:
   m_ObjectHideFlags: 0

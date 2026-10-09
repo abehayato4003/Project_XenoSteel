@@ -1,5 +1,7 @@
 using UnityEngine;
+
 using TurnBasedStrategyFramework.Unity.Units;
+
 using XenoSteel.Core;
 using XenoSteel.Units;
 using XenoSteel.Information;
@@ -8,10 +10,7 @@ using TurnBasedStrategyFramework.Common.Units;
 
 namespace XenoSteel.Combat
 {
-    [CreateAssetMenu(
-        fileName = "NewDamageEffect",
-        menuName = "XenoSteel/Effects/Damage"
-    )]
+    [System.Serializable]
     public class XenoSteelDamageEffect : XenoSteelEffect
     {
         [Header("ダメージ性能")]
@@ -53,7 +52,10 @@ namespace XenoSteel.Combat
                     targetInitiative.Stats
                 );
 
-            targetUnit.ModifyHealth(-damage, attackerUnit);
+            targetUnit.ModifyHealth(
+                -damage,
+                attackerUnit
+            );
 
             if (targetUnit.Health <= 0 &&
                 targetUnit.PlayerNumber == 0)

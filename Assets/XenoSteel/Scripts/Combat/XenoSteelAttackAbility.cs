@@ -11,6 +11,7 @@ using UnityEngine;
 using XenoSteel.Core;
 using XenoSteel.Units;
 using XenoSteel.Information;
+using System.Threading.Tasks;
 
 
 namespace XenoSteel.Combat
@@ -188,9 +189,8 @@ namespace XenoSteel.Combat
             }
 
             var attackerUnit = UnitReference as Unit;
-            var defenderUnit = unit as Unit;
 
-            if (attackerUnit == null || defenderUnit == null)
+            if (attackerUnit == null)
             {
                 return;
             }
@@ -198,27 +198,64 @@ namespace XenoSteel.Combat
             var attackerInitiative =
                 attackerUnit.GetComponent<XenoSteelInitiative>();
 
-            var defenderInitiative =
-                defenderUnit.GetComponent<XenoSteelInitiative>();
-
-            if (attackerInitiative == null ||
-                defenderInitiative == null)
+            if (attackerInitiative == null)
             {
                 return;
             }
 
-            var stats = attackerInitiative.Stats;
             int energyCost = _currentSkill.energyCost;
 
-            // EN確認
-            if (!stats.CanConsumeEN(energyCost))
+            if (!attackerInitiative.Stats.CanConsumeEN(energyCost))
             {
                 Debug.Log(
                     $"EN不足: Skill={_currentSkill.skillName}, " +
                     $"必要EN={energyCost}, " +
-                    $"現在EN={stats.EN}");
+                    $"現在EN={attackerInitiative.Stats.EN}"
+                );
 
                 return;
+            }
+
+            await ExecuteUnitSkill(
+                unit,
+                _currentSkill,
+                gridController
+            );
+        }
+
+        private async Task<bool> ExecuteUnitSkill(
+            IUnit selectedTarget,
+            SkillData skill,
+            IGridController gridController)
+        {
+            if (selectedTarget == null ||
+                skill == null)
+            {
+                return false;
+            }
+
+            var attackerUnit = UnitReference as Unit;
+            var targetUnit = selectedTarget as Unit;
+
+            if (attackerUnit == null ||
+                targetUnit == null)
+            {
+                return false;
+            }
+
+            var attackerInitiative =
+                attackerUnit.GetComponent<XenoSteelInitiative>();
+
+            if (attackerInitiative == null)
+            {
+                return false;
+            }
+
+            int energyCost = skill.energyCost;
+
+            if (!attackerInitiative.Stats.CanConsumeEN(energyCost))
+            {
+                return false;
             }
 
             // ----------------------------------------
@@ -228,9 +265,10 @@ namespace XenoSteel.Combat
             var affectedTargets =
                 XenoSteelAttackTargeting.GetAffectedTargets(
                     UnitReference,
-                    unit,
-                    _currentSkill,
-                    _gridController);
+                    selectedTarget,
+                    skill,
+                    gridController
+                );
 
             // ----------------------------------------
             // areaによる追加対象取得
@@ -238,19 +276,16 @@ namespace XenoSteel.Combat
 
             var areaTargets = new List<IUnit>();
 
-            if (_currentSkill.area <= 0)
+            if (skill.area <= 0)
             {
-                // area = 0なら、攻撃形状で決まった対象をそのまま使用
                 areaTargets.AddRange(affectedTargets);
             }
             else
             {
-                // 攻撃形状で決まった対象それぞれを中心として
-                // area範囲内の敵を追加
-                var enemyUnits = _gridController.UnitManager
-                    .GetEnemyUnits(_unitPlayerNumber());
-
-                
+                var enemyUnits =
+                    gridController.UnitManager.GetEnemyUnits(
+                        UnitReference.PlayerNumber
+                    );
 
                 foreach (var target in affectedTargets)
                 {
@@ -270,30 +305,38 @@ namespace XenoSteel.Combat
 
                         int distance =
                             enemy.CurrentCell.GetDistance(
-                                target.CurrentCell);
+                                target.CurrentCell
+                            );
 
-                        if (distance <= _currentSkill.area &&
+                        if (distance <= skill.area &&
                             !areaTargets.Contains(enemy))
                         {
                             areaTargets.Add(enemy);
                         }
                     }
                 }
-            }            
+            }
+
+            if (areaTargets.Count == 0)
+            {
+                return false;
+            }
 
             // ----------------------------------------
-            // 現段階では選択した対象へ攻撃
+            // 実際の攻撃
             // ----------------------------------------
+
             foreach (var target in areaTargets)
             {
-                var targetUnit = target as Unit;
-                if (targetUnit == null)
+                var targetUnitInArea = target as Unit;
+
+                if (targetUnitInArea == null)
                 {
                     continue;
                 }
 
                 var targetInitiative =
-                    targetUnit.GetComponent<XenoSteelInitiative>();
+                    targetUnitInArea.GetComponent<XenoSteelInitiative>();
 
                 if (targetInitiative == null)
                 {
@@ -301,13 +344,14 @@ namespace XenoSteel.Combat
                 }
 
                 Debug.Log(
-                    $"Area Target: {targetUnit.name}"
+                    $"Area Target: {targetUnitInArea.name}"
                 );
 
+                // 戦闘演出
                 if (attackPresentation != null)
                 {
                     await attackPresentation.PlayAttackPresentation(
-                        _currentSkill.presentation
+                        skill.presentation
                     );
                 }
 
@@ -316,22 +360,25 @@ namespace XenoSteel.Combat
 
                 if (turnResolver == null)
                 {
-                    return;
+                    return false;
                 }
 
-                // 先にAttackCommandを実行する。
-                // targetが生存している状態で
-                // MarkAsAttacking / MarkAsDefendingを完了させる。
+                // ----------------------------------------
+                // AttackCommandを先に実行
+                // ----------------------------------------
+
                 await UnitReference.HumanExecuteAbility(
                     new XenoSteelAttackCommand(
                         target,
-                        (int)attackerUnit.ActionPoints),
+                        (int)attackerUnit.ActionPoints
+                    ),
                     gridController
                 );
 
-                // AttackCommand完了後にEffectを実行する。
-                // ここでダメージを与え、targetが撃破されても
-                // その後にtargetのRendererを触らない。
+                // ----------------------------------------
+                // AttackCommand完了後にEffect実行
+                // ----------------------------------------
+
                 var effectContext =
                     new XenoSteelEffectContext(
                         UnitReference,
@@ -343,30 +390,71 @@ namespace XenoSteel.Combat
                         turnResolver.CurrentRound
                     );
 
-                if (_currentSkill.effects != null)
+                if (skill.effects != null)
                 {
-                    foreach (var effect in _currentSkill.effects)
+                    foreach (var effect in skill.effects)
                     {
                         if (effect == null)
+                        {
                             continue;
+                        }
 
                         effect.Execute(effectContext);
                     }
                 }
             }
 
+            // ----------------------------------------
+            // EN消費
+            // ----------------------------------------
 
-
-            // 攻撃完了後にEN消費
-            if (stats.ConsumeEN(energyCost))
+            if (!attackerInitiative.Stats.ConsumeEN(energyCost))
             {
-                Debug.Log(
-                    $"EN consumed: {energyCost}, " +
-                    $"EN after attack: {stats.EN}");
+                return false;
             }
 
-            // 攻撃スキル完了 → 次のユニットへ
+            Debug.Log(
+                $"EN consumed: {energyCost}, " +
+                $"EN after attack: {attackerInitiative.Stats.EN}"
+            );
+
+            // ----------------------------------------
+            // 攻撃スキル完了
+            // ----------------------------------------
+
             gridController.EndTurn();
+
+            return true;
+        }
+
+        public async Task<bool> ExecuteAISkill(
+            SkillData skill,
+            IUnit target,
+            IGridController gridController)
+        {
+            if (skill == null ||
+                target == null)
+            {
+                return false;
+            }
+
+            if (skill.targetType != SkillTargetType.Unit)
+            {
+                return false;
+            }
+
+            if (UnitReference.ActionPoints <= 0)
+            {
+                return false;
+            }
+
+            _currentSkill = skill;
+
+            return await ExecuteUnitSkill(
+                target,
+                skill,
+                gridController
+            );
         }
 
         public override async void OnCellClicked(

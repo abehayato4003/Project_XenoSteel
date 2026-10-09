@@ -1,25 +1,30 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 using TurnBasedStrategyFramework.Common.AI.BehaviourTrees;
 using TurnBasedStrategyFramework.Common.Controllers;
 using TurnBasedStrategyFramework.Common.Units;
-using TurnBasedStrategyFramework.Common.Units.Abilities;
 
 using XenoSteel.Combat;
 using XenoSteel.Core;
+using XenoSteel.Units;
+
+using UnityEngine;
 
 namespace XenoSteel.AI
 {
-    /// <summary>
-    /// XenoSteel用のAI攻撃処理。
-    /// スキルの射程内にいる敵を確認し、
-    /// ENを考慮して使用可能なSkillで攻撃する。
-    /// </summary>
     public class XenoSteelAIAttackActionNode : ITreeNode
     {
         private readonly IUnit _unit;
         private readonly IGridController _gridController;
+
+        private class AttackCandidate
+        {
+            public SkillData Skill;
+            public IUnit Target;
+            public int Damage;
+        }
 
         public XenoSteelAIAttackActionNode(
             IUnit unit,
@@ -64,13 +69,17 @@ namespace XenoSteel.AI
                 return false;
             }
 
-            var enemyUnits = _gridController.UnitManager
-                .GetEnemyUnits(_unit.PlayerNumber);
+            var enemyUnits =
+                _gridController.UnitManager.GetEnemyUnits(
+                    _unit.PlayerNumber
+                );
 
-            SkillData bestSkill = null;
-            IUnit bestTarget = null;
-            XenoSteelUnitStats bestTargetStats = null;
-            int bestDamage = -1;
+            var candidates =
+                new List<AttackCandidate>();
+
+            // ----------------------------------------
+            // Skill × Target の候補を作る
+            // ----------------------------------------
 
             foreach (var skill in initiative.UnitData.skills)
             {
@@ -79,118 +88,181 @@ namespace XenoSteel.AI
                     continue;
                 }
 
-                // EN不足のSkillは候補から除外
-                if (!initiative.Stats.CanConsumeEN(skill.energyCost))
+                // Unit対象以外はこの攻撃AIでは扱わない
+                if (skill.targetType != SkillTargetType.Unit)
                 {
-                    UnityEngine.Debug.Log(
-                        $"AI Skill skipped: {skill.skillName}, " +
-                        $"EN不足 (必要={skill.energyCost}, " +
-                        $"現在={initiative.Stats.EN})"
+                    continue;
+                }
+
+                // EN不足
+                if (!initiative.Stats.CanConsumeEN(
+                        skill.energyCost))
+                {
+                    continue;
+                }
+
+                // DamageEffectを取得
+                var damageEffect =
+                    skill.effects?
+                        .OfType<XenoSteelDamageEffect>()
+                        .FirstOrDefault();
+
+                // ダメージを与えないSkillは
+                // このAttackActionNodeでは使用しない
+                if (damageEffect == null)
+                {
+                    continue;
+                }
+
+                // 実際に攻撃可能な対象を取得
+                var attackableTargets =
+                    XenoSteelAttackTargeting
+                        .GetAttackableTargets(
+                            _unit,
+                            skill,
+                            _gridController
+                        );
+
+                foreach (var target in attackableTargets)
+                {
+                    if (target == null)
+                    {
+                        continue;
+                    }
+
+                    if (!enemyUnits.Contains(target))
+                    {
+                        continue;
+                    }
+
+                    var targetUnit =
+                        target as TurnBasedStrategyFramework
+                            .Unity.Units.Unit;
+
+                    if (targetUnit == null)
+                    {
+                        continue;
+                    }
+
+                    var targetInitiative =
+                        targetUnit.GetComponent<XenoSteelInitiative>();
+
+                    if (targetInitiative == null ||
+                        targetInitiative.Stats == null)
+                    {
+                        continue;
+                    }
+
+                    int damage =
+                        XenoSteelDamageCalculator.CalculateDamage(
+                            initiative.Stats,
+                            damageEffect.power,
+                            targetInitiative.Stats
+                        );
+
+                    candidates.Add(
+                        new AttackCandidate
+                        {
+                            Skill = skill,
+                            Target = target,
+                            Damage = damage
+                        }
                     );
-                    continue;
-                }
-
-                // このSkillの射程内にいる敵を探す
-                var target = enemyUnits.FirstOrDefault(enemy =>
-                    enemy.CurrentCell != null &&
-                    _unit.CurrentCell != null &&
-                    enemy.CurrentCell.GetDistance(_unit.CurrentCell) <= skill.range
-                );
-
-                if (target == null)
-                {
-                    continue;
-                }
-
-                var targetUnit =
-                    target as TurnBasedStrategyFramework.Unity.Units.Unit;
-
-                if (targetUnit == null)
-                {
-                    continue;
-                }
-
-                var targetInitiative =
-                    targetUnit.GetComponent<XenoSteelInitiative>();
-
-                if (targetInitiative == null ||
-                    targetInitiative.Stats == null)
-                {
-                    continue;
-                }
-
-                // このSkillで与えられるダメージを計算
-                var damage =
-                    XenoSteelDamageCalculator.CalculateDamage(
-                        initiative.Stats,
-                        skill.power,
-                        targetInitiative.Stats);
-
-                // より高いダメージを出せるSkillを採用
-                if (damage > bestDamage)
-                {
-                    bestDamage = damage;
-                    bestSkill = skill;
-                    bestTarget = target;
-                    bestTargetStats = targetInitiative.Stats;
                 }
             }
 
-            // 使用可能なSkillがなければ攻撃しない
-            if (bestSkill == null || bestTarget == null)
+            // 攻撃候補がなければ攻撃しない
+            if (candidates.Count == 0)
             {
                 return false;
             }
 
-            // 選択したSkillを設定
-            attackAbility.SetCurrentSkill(bestSkill);
+            // ----------------------------------------
+            // ダメージ順に並べる
+            // ----------------------------------------
 
-            UnityEngine.Debug.Log(
-                $"AI Selected Skill: {bestSkill.skillName}, " +
-                $"Power={bestSkill.power}, " +
-                $"EnergyCost={bestSkill.energyCost}, " +
-                $"Damage={bestDamage}"
-            );
+            candidates = candidates
+                .OrderByDescending(candidate => candidate.Damage)
+                .ToList();
 
-            var attackPresentation =
-                unit.GetComponent<XenoSteelAttackPresentation>();
+            // ----------------------------------------
+            // 上位候補からランダム選択
+            //
+            // 1候補 : 100%
+            // 2候補 : 60 / 40
+            // 3候補以上 : 60 / 30 / 10
+            // ----------------------------------------
 
-            if (attackPresentation != null)
+            int candidateCount =
+                Mathf.Min(3, candidates.Count);
+
+            AttackCandidate selectedCandidate;
+
+            if (candidateCount == 1)
             {
-                await attackPresentation.PlayAttackPresentation(
-                    bestSkill.presentation
-                );
+                selectedCandidate = candidates[0];
             }
-
-            var tcs = new TaskCompletionSource<bool>();
-
-            _unit.AIExecuteAbility(
-                new AttackCommand(bestTarget, bestDamage),
-                _gridController,
-                tcs
-            );
-
-            // 攻撃完了を待つ
-            bool result = await tcs.Task;
-
-            // 攻撃対象の赤ハイライトを解除
-            attackAbility.CleanUp(_gridController);
-
-            // 攻撃成功時にENを消費
-            if (result)
+            else
             {
-                if (initiative.Stats.ConsumeEN(bestSkill.energyCost))
+                float[] weights;
+
+                if (candidateCount == 2)
                 {
-                    UnityEngine.Debug.Log(
-                        $"AI EN consumed: {bestSkill.energyCost}, " +
-                        $"EN after attack: {initiative.Stats.EN}"
-                    );
+                    weights = new float[]
+                    {
+                        0.60f,
+                        0.40f
+                    };
+                }
+                else
+                {
+                    weights = new float[]
+                    {
+                        0.60f,
+                        0.30f,
+                        0.10f
+                    };
+                }
+
+                float random =
+                    Random.Range(0f, 1f);
+
+                float cumulative = 0f;
+
+                selectedCandidate = candidates[0];
+
+                for (int i = 0;
+                     i < candidateCount;
+                     i++)
+                {
+                    cumulative += weights[i];
+
+                    if (random <= cumulative)
+                    {
+                        selectedCandidate =
+                            candidates[i];
+
+                        break;
+                    }
                 }
             }
 
-            return result;
-        }
+            // ----------------------------------------
+            // 選択された攻撃を実行
+            // ----------------------------------------
 
-        
+            Debug.Log(
+                $"AI Selected Skill: " +
+                $"{selectedCandidate.Skill.skillName}, " +
+                $"Target={selectedCandidate.Target}, " +
+                $"PredictedDamage={selectedCandidate.Damage}"
+            );
+
+            return await attackAbility.ExecuteAISkill(
+                selectedCandidate.Skill,
+                selectedCandidate.Target,
+                _gridController
+            );
+        }
     }
 }
